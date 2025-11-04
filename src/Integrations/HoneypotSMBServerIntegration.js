@@ -50,7 +50,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
     this.#server = net.createServer((socket) => {
       const ip = socket.remoteAddress;
 
-      debugLog(`New connection from ${ip}`);
+      debugLog(`New connection from %o`, socket.address());
 
       if (!ip) {
         debugLog("Invalid IP address. Connection closed.");

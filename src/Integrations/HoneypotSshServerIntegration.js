@@ -76,11 +76,16 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
         if (!handshakeDone) {
           // Mock KEXINIT reply
           // type 20 = SSH_MSG_KEXINIT
-          socket.write(Buffer.from([
-            0x14, // SSH_MSG_KEXINIT
-            ...Buffer.alloc(15, 0), // cookie (random bytes normally)
-            0x00, 0x00, 0x00, 0x00, // fake algorithm lists lengths
-          ]));
+          socket.write(
+            Buffer.from([
+              0x14, // SSH_MSG_KEXINIT
+              ...Buffer.alloc(15, 0), // cookie (random bytes normally)
+              0x00,
+              0x00,
+              0x00,
+              0x00, // fake algorithm lists lengths
+            ]),
+          );
 
           // Mock NEWKEYS
           socket.write(Buffer.from([0x15])); // type 21 = SSH_MSG_NEWKEYS
@@ -89,7 +94,6 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
           console.log(`Mock handshake completed for ${ip}`);
           return;
         }
-
       });
 
       setTimeout(() => {

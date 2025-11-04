@@ -48,20 +48,20 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
     const server = net.createServer((socket) => {
       const ip = splitIpAddress(socket.remoteAddress);
 
-      debugLog(`[Telnet] New connection from ${ip}`);
+      debugLog(`New connection from %o`, socket.address());
 
       if (!ip) {
-        debugLog("[Telnet] Invalid IP address. Connection will be closed.");
+        debugLog("Invalid IP address. Connection will be closed.");
         socket.destroy();
         return;
       }
 
       socket.on("error", (err) => {
-        debugLog(`[Telnet] Socket error from ${ip}: ${err.message}`);
+        debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
       if (honeypotServer.whitelist.contains(ip)) {
-        debugLog(`[Telnet] IP ${ip} is whitelisted. Closing connection.`);
+        debugLog(`IP ${ip} is whitelisted. Closing connection.`);
         socket.destroy();
         return;
       }
@@ -73,13 +73,13 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
 
       socket.on("data", (data) => {
         const input = data.toString().trim();
-        debugLog(`[Telnet] Input from ${ip}: ${input}`);
+        debugLog(`Input from ${ip}: ${input}`);
         socket.write("Invalid login.\r\nlogin: ");
       });
 
       setTimeout(() => {
         socket.destroy();
-        debugLog(`[Telnet] Connection from ${ip} has been closed.`);
+        debugLog(`Connection from ${ip} has been closed.`);
       }, 10000);
     });
 
@@ -90,11 +90,11 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
         debugLog(
-          `[Telnet] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
+          `Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
         );
       })
       .on("error", (err) => {
-        debugLog(`[Telnet] Error: ${err.message}`);
+        debugLog(`Error: ${err.message}`);
       });
   }
 }

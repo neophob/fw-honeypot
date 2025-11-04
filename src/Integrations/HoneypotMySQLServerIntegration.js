@@ -59,7 +59,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
 
     this.#server = net.createServer((socket) => {
       const ip = splitIpAddress(socket.remoteAddress);
-      debugLog(`New connection from ${ip}`);
+      debugLog(`New connection from %o`, socket.address());
 
       if (!ip) {
         debugLog("Invalid IP address. Closing connection.");
