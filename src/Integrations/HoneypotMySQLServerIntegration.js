@@ -36,6 +36,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
   constructor(config) {
     super();
     this.config = mergeConfigs(this.config, config);
+    debugLog("Config: <%o>", this.config);
   }
 
   /**
@@ -58,20 +59,20 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
 
     this.#server = net.createServer((socket) => {
       const ip = splitIpAddress(socket.remoteAddress);
-      debugLog(`[MySQL] New connection from ${ip}`);
+      debugLog(`New connection from ${ip}`);
 
       if (!ip) {
-        debugLog("[MySQL] Invalid IP address. Closing connection.");
+        debugLog("Invalid IP address. Closing connection.");
         socket.destroy();
         return;
       }
 
       socket.on("error", (err) => {
-        debugLog(`[MySQL] Socket error from ${ip}: ${err.message}`);
+        debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
       if (honeypotServer.whitelist.contains(ip)) {
-        debugLog(`[MySQL] IP ${ip} is whitelisted. Closing connection.`);
+        debugLog(`IP ${ip} is whitelisted. Closing connection.`);
         socket.destroy();
         return;
       }
@@ -83,7 +84,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
 
       // Handle incoming packets
       socket.on("data", (data) => {
-        debugLog(`[MySQL] Received data from ${ip}: ${data.toString("hex")}`);
+        debugLog(`Received data from ${ip}: ${data.toString("hex")}`);
 
         // Simulate a failed login
         const failurePacket = Buffer.from([
@@ -99,7 +100,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
       // Close connection after a timeout
       setTimeout(() => {
         socket.destroy();
-        debugLog(`[MySQL] Connection from ${ip} has been closed.`);
+        debugLog(`Connection from ${ip} has been closed.`);
       }, 5000);
     });
   }
@@ -108,11 +109,11 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
         debugLog(
-          `[MySQL] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
+          `Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
         );
       })
       .on("error", (err) => {
-        debugLog(`[MySQL] Error: ${err.message}`);
+        debugLog(`Error: ${err.message}`);
       });
   }
 }

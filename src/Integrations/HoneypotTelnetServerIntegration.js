@@ -43,6 +43,7 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
      */
     const config = mergeConfigs(honeypotServer.config, this.config);
     this.config = config;
+    debugLog("Config: <%o>", this.config);
 
     const server = net.createServer((socket) => {
       const ip = splitIpAddress(socket.remoteAddress);

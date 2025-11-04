@@ -2,6 +2,8 @@ import { AbstractHoneypotIntegration } from "./Integrations/AbstractHoneypotInte
 import { IPList } from "./IPList.js";
 import { createApiServer } from "./ApiServer.js";
 import { mergeConfigs } from "./utils/config-utils.js";
+import debug from "debug";
+const debugLog = debug("HoneypotServer");
 
 const DEFAULT_BAN_DURATION_MS = 60 * 60 * 24 * 1000;
 const DEFAULT_API_SERVER_PORT = 3477;
@@ -35,6 +37,7 @@ export class HoneypotServer {
     config ??= {};
     this.#integrations = abstractHoneypotIntegration;
     this.#config = mergeConfigs(this.#config, config);
+    debugLog("Config: <%o>", this.#config);
   }
 
   /**
@@ -80,6 +83,7 @@ export class HoneypotServer {
       for (const key of keys) {
         const timestamp = this.blacklist.getIpV4Timestamp(key);
         if (timestamp !== true && timestamp <= now) {
+          debugLog("remove blacklist ipV4 entry <%s>", key);
           this.blacklist.del(key);
         }
       }
@@ -87,6 +91,7 @@ export class HoneypotServer {
       for (const key of this.blacklist.ipV6) {
         const timestamp = this.blacklist.getIpV6Timestamp(key);
         if (timestamp !== true && timestamp <= now) {
+          debugLog("remove blacklist ipV6 entry <%s>", key);
           this.blacklist.del(key);
         }
       }

@@ -1,5 +1,4 @@
 node_modules/
 .idea/
-.env.json
 blacklist.json
 whitelist.json

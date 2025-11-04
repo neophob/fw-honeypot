@@ -41,6 +41,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
      */
     const config = mergeConfigs(honeypotServer.config, this.config);
     this.config = config;
+    debugLog("Config: <%o>", this.config);
 
     const server = new SMTPServer({
       name: "mail.local",

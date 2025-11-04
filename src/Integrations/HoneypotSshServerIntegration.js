@@ -43,11 +43,12 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
      */
     const config = mergeConfigs(honeypotServer.config, this.config);
     this.config = config;
+    debugLog("Config: <%o>", this.config);
 
     const server = net.createServer((socket) => {
       const ip = splitIpAddress(socket.remoteAddress);
 
-      debugLog(`New connection from ${ip}`);
+      debugLog(`New connection from ${ip}:${socket.remotePort}`);
 
       if (!ip) {
         debugLog("Invalid IP address. Connection will be closed.");

@@ -45,24 +45,25 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
   create(honeypotServer) {
     const config = mergeConfigs(honeypotServer.config, this.config);
     this.config = config;
+    debugLog("Config: <%o>", this.config);
 
     this.#server = net.createServer((socket) => {
       const ip = socket.remoteAddress;
 
-      debugLog(`[SMB] New connection from ${ip}`);
+      debugLog(`New connection from ${ip}`);
 
       if (!ip) {
-        debugLog("[SMB] Invalid IP address. Connection closed.");
+        debugLog("Invalid IP address. Connection closed.");
         socket.destroy();
         return;
       }
 
       socket.on("error", (err) => {
-        debugLog(`[SMB] Socket error from ${ip}: ${err.message}`);
+        debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
       if (honeypotServer.whitelist.contains(ip)) {
-        debugLog(`[SMB] IP ${ip} is whitelisted. Closing connection.`);
+        debugLog(`IP ${ip} is whitelisted. Closing connection.`);
         socket.destroy();
         return;
       }
@@ -73,13 +74,13 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
       socket.write(SMB_BANNER);
 
       socket.on("data", (data) => {
-        debugLog(`[SMB] Data from ${ip}: ${data.toString("hex")}`);
+        debugLog(`Data from ${ip}: ${data.toString("hex")}`);
       });
 
       // Verbindung nach 10 Sekunden beenden
       setTimeout(() => {
         socket.destroy();
-        debugLog(`[SMB] Connection from ${ip} has been closed.`);
+        debugLog(`Connection from ${ip} has been closed.`);
       }, 10000);
     });
   }
@@ -88,11 +89,11 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
         debugLog(
-          `[SMB] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
+          `Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
         );
       })
       .on("error", (err) => {
-        debugLog(`[SMB] Error: ${err.message}`);
+        debugLog(`Error: ${err.message}`);
       });
   }
 }
