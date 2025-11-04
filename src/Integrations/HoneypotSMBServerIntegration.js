@@ -1,12 +1,15 @@
-import {AbstractHoneypotIntegration} from "./AbstractHoneypotIntegration.js";
-import {HoneypotServer} from "../CreateHoneypot.js";
-import {mergeConfigs} from "../utils/config-utils.js";
-import debug from 'debug';
-const debugLog = debug('HoneypotSMBServerIntegration');
+import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
+import { HoneypotServer } from "../CreateHoneypot.js";
+import { mergeConfigs } from "../utils/config-utils.js";
+import debug from "debug";
+const debugLog = debug("HoneypotSMBServerIntegration");
 import net from "net";
 
 const SMB_BANNER = Buffer.from([
-  0xFF, 0x53, 0x4D, 0x42, // "SMB" Header
+  0xff,
+  0x53,
+  0x4d,
+  0x42, // "SMB" Header
   0x72, // Command (Negotiate Protocol)
 ]);
 
@@ -41,7 +44,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
    */
   create(honeypotServer) {
     const config = mergeConfigs(honeypotServer.config, this.config);
-    this.config = config
+    this.config = config;
 
     this.#server = net.createServer((socket) => {
       const ip = socket.remoteAddress;
@@ -84,7 +87,9 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
   listen() {
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
-        debugLog(`[SMB] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
+        debugLog(
+          `[SMB] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
+        );
       })
       .on("error", (err) => {
         debugLog(`[SMB] Error: ${err.message}`);

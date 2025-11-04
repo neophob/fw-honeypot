@@ -1,88 +1,85 @@
-import {AbstractHoneypotIntegration} from "./AbstractHoneypotIntegration.js";
+import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
 import net from "net";
-import {splitIpAddress} from "../utils/ip-utils.js";
-import {HoneypotServer} from "../CreateHoneypot.js";
-import {mergeConfigs} from "../utils/config-utils.js";
-import debug from 'debug';
-const debugLog = debug('HoneypotTelnetServerIntegration');
+import { splitIpAddress } from "../utils/ip-utils.js";
+import { HoneypotServer } from "../CreateHoneypot.js";
+import { mergeConfigs } from "../utils/config-utils.js";
+import debug from "debug";
+const debugLog = debug("HoneypotTelnetServerIntegration");
 
-const TELNET_BANNER = 'Welcome to Telnet Honeypot\r\n';
+const TELNET_BANNER = "Welcome to Telnet Honeypot\r\n";
 
 export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration {
-
-  #server
+  #server;
 
   /**
    * @type {HoneypotServerConfig}
    */
   #config = {
-    port: 23
-  }
+    port: 23,
+  };
 
   constructor(config) {
-    super()
-    this.config = mergeConfigs(this.config, config)
+    super();
+    this.config = mergeConfigs(this.config, config);
   }
 
   /**
    * @return {HoneypotServerConfig}
    */
   get config() {
-    return this.#config
+    return this.#config;
   }
 
   set config(config) {
-    this.#config = config
+    this.#config = config;
   }
 
   /**
    * @param {HoneypotServer} honeypotServer
    */
   create(honeypotServer) {
-
     /**
      * @type {HoneypotServerConfig}
      */
-    const config = mergeConfigs(honeypotServer.config, this.config)
-    this.config = config
+    const config = mergeConfigs(honeypotServer.config, this.config);
+    this.config = config;
 
     const server = net.createServer((socket) => {
-
       const ip = splitIpAddress(socket.remoteAddress);
 
-      debugLog(`[Telnet] New connection from ${ip}`)
+      debugLog(`[Telnet] New connection from ${ip}`);
 
       if (!ip) {
-        debugLog("[Telnet] Invalid IP address. Connection will be closed.")
-        socket.destroy()
+        debugLog("[Telnet] Invalid IP address. Connection will be closed.");
+        socket.destroy();
         return;
       }
 
-      socket.on('error', (err) => {
-        debugLog(`[Telnet] Socket error from ${ip}: ${err.message}`)
+      socket.on("error", (err) => {
+        debugLog(`[Telnet] Socket error from ${ip}: ${err.message}`);
       });
 
       if (honeypotServer.whitelist.contains(ip)) {
-        debugLog(`[Telnet] IP ${ip} is whitelisted. Closing connection.`)
-        socket.destroy()
-        return
+        debugLog(`[Telnet] IP ${ip} is whitelisted. Closing connection.`);
+        socket.destroy();
+        return;
       }
 
-      honeypotServer.blacklist.add(ip, config.banDurationMs)
+      honeypotServer.blacklist.add(ip, config.banDurationMs);
 
-      socket.write(TELNET_BANNER)
-      socket.write('login: ')
+      socket.write(TELNET_BANNER);
+      socket.write("login: ");
 
-      socket.on('data', (data) => {
-        const input = data.toString().trim()
-        debugLog(`[Telnet] Input from ${ip}: ${input}`)
-        socket.write('Invalid login.\r\nlogin: ')
-      })
+      socket.on("data", (data) => {
+        const input = data.toString().trim();
+        debugLog(`[Telnet] Input from ${ip}: ${input}`);
+        socket.write("Invalid login.\r\nlogin: ");
+      });
 
       setTimeout(() => {
-        socket.destroy()
-        debugLog(`[Telnet] Connection from ${ip} has been closed.`)
-      }, 10000)
+        socket.destroy();
+        debugLog(`[Telnet] Connection from ${ip} has been closed.`);
+      }, 10000);
     });
 
     this.#server = server;
@@ -91,7 +88,9 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
   listen() {
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
-        debugLog(`[Telnet] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
+        debugLog(
+          `[Telnet] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
+        );
       })
       .on("error", (err) => {
         debugLog(`[Telnet] Error: ${err.message}`);

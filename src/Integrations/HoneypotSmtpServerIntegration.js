@@ -1,87 +1,86 @@
-import {AbstractHoneypotIntegration} from "./AbstractHoneypotIntegration.js";
-import {HoneypotServer} from "../CreateHoneypot.js";
-import {mergeConfigs} from "../utils/config-utils.js";
-import {SMTPServer} from "smtp-server";
-import {splitIpAddress} from "../utils/ip-utils.js";
-import debug from 'debug';
-const debugLog = debug('HoneypotSmtpServerIntegration');
+import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
+import { HoneypotServer } from "../CreateHoneypot.js";
+import { mergeConfigs } from "../utils/config-utils.js";
+import { SMTPServer } from "smtp-server";
+import { splitIpAddress } from "../utils/ip-utils.js";
+import debug from "debug";
+const debugLog = debug("HoneypotSmtpServerIntegration");
 
 export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
-
-  #server
+  #server;
 
   /**
    * @type {HoneypotServerConfig}
    */
   #config = {
-    port: 25
-  }
+    port: 25,
+  };
 
   constructor(config) {
-    super()
-    this.config = mergeConfigs(this.config, config)
+    super();
+    this.config = mergeConfigs(this.config, config);
   }
 
   /**
    * @return {HoneypotServerConfig}
    */
   get config() {
-    return this.#config
+    return this.#config;
   }
 
   set config(config) {
-    this.#config = config
+    this.#config = config;
   }
 
   /**
    * @param {HoneypotServer} honeypotServer
    */
   create(honeypotServer) {
-
     /**
      * @type {HoneypotServerConfig}
      */
-    const config = mergeConfigs(honeypotServer.config, this.config)
-    this.config = config
+    const config = mergeConfigs(honeypotServer.config, this.config);
+    this.config = config;
 
     const server = new SMTPServer({
-      name: 'mail.local',
-      banner: 'welcome',
+      name: "mail.local",
+      banner: "welcome",
       logger: false,
-      disabledCommands: ['AUTH'],
+      disabledCommands: ["AUTH"],
       onData(stream, session, callback) {
-        stream.pipe(process.stdout)
+        stream.pipe(process.stdout);
         //stream.resume()
-        stream.on("end", callback)
+        stream.on("end", callback);
       },
       onRcptTo(address, session, callback) {
-        debugLog(`Recipient: ${address.address}`)
-        return callback()
+        debugLog(`Recipient: ${address.address}`);
+        return callback();
       },
       onMailFrom(address, session, callback) {
-        debugLog(`Mail from: ${address.address}`)
-        return callback()
+        debugLog(`Mail from: ${address.address}`);
+        return callback();
       },
       onConnect(session, callback) {
-        const ip = splitIpAddress(session.remoteAddress)
+        const ip = splitIpAddress(session.remoteAddress);
         debugLog(`Connection attempt from ${ip} - ${session.clientHostname}`);
 
         if (honeypotServer.whitelist.contains(ip)) {
           debugLog(`IP ${ip} is whitelisted.`);
         } else {
-          honeypotServer.blacklist.add(ip, config.banDurationMs)
+          honeypotServer.blacklist.add(ip, config.banDurationMs);
         }
-        callback()
+        callback();
       },
     });
 
-    this.#server = server
+    this.#server = server;
   }
 
   listen() {
-    this.#server
-      .listen(this.#config.port, this.#config.host, () => {
-        debugLog(`[SMTP] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
-      })
+    this.#server.listen(this.#config.port, this.#config.host, () => {
+      debugLog(
+        `[SMTP] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
+      );
+    });
   }
 }

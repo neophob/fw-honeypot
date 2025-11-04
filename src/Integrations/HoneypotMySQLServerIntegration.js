@@ -1,29 +1,36 @@
-import {AbstractHoneypotIntegration} from "./AbstractHoneypotIntegration.js";
+import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
 import net from "net";
-import {splitIpAddress} from "../utils/ip-utils.js";
-import {HoneypotServer} from "../CreateHoneypot.js";
-import {mergeConfigs} from "../utils/config-utils.js";
-import debug from 'debug';
-const debugLog = debug('HoneypotMySQLServerIntegration');
+import { splitIpAddress } from "../utils/ip-utils.js";
+import { HoneypotServer } from "../CreateHoneypot.js";
+import { mergeConfigs } from "../utils/config-utils.js";
+import debug from "debug";
+const debugLog = debug("HoneypotMySQLServerIntegration");
 
 const MYSQL_HANDSHAKE = Buffer.from([
   0x0a, // Protocol version
   ...Buffer.from("5.7.31-log"), // Server version
-  0x00, 0x00, 0x00, 0x00, // Connection ID
-  0x08, 0x00, 0x00, 0x00, // Capabilities flags
-  0x21, 0x00,             // Charset (utf8_general_ci)
-  0x02, 0x00              // Status flags
+  0x00,
+  0x00,
+  0x00,
+  0x00, // Connection ID
+  0x08,
+  0x00,
+  0x00,
+  0x00, // Capabilities flags
+  0x21,
+  0x00, // Charset (utf8_general_ci)
+  0x02,
+  0x00, // Status flags
 ]);
 
 export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration {
-
   #server;
 
   /**
    * @type {HoneypotServerConfig}
    */
   #config = {
-    port: 3306
+    port: 3306,
   };
 
   constructor(config) {
@@ -46,9 +53,8 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
    * @param {HoneypotServer} honeypotServer
    */
   create(honeypotServer) {
-
     const config = mergeConfigs(honeypotServer.config, this.config);
-    this.config = config
+    this.config = config;
 
     this.#server = net.createServer((socket) => {
       const ip = splitIpAddress(socket.remoteAddress);
@@ -60,7 +66,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
         return;
       }
 
-      socket.on('error', (err) => {
+      socket.on("error", (err) => {
         debugLog(`[MySQL] Socket error from ${ip}: ${err.message}`);
       });
 
@@ -76,11 +82,17 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
       socket.write(MYSQL_HANDSHAKE);
 
       // Handle incoming packets
-      socket.on('data', (data) => {
-        debugLog(`[MySQL] Received data from ${ip}: ${data.toString('hex')}`);
+      socket.on("data", (data) => {
+        debugLog(`[MySQL] Received data from ${ip}: ${data.toString("hex")}`);
 
         // Simulate a failed login
-        const failurePacket = Buffer.from([0xff, 0x15, 0x04, 0x23, ...Buffer.from("28000 Access denied for user")]);
+        const failurePacket = Buffer.from([
+          0xff,
+          0x15,
+          0x04,
+          0x23,
+          ...Buffer.from("28000 Access denied for user"),
+        ]);
         socket.write(failurePacket);
       });
 
@@ -95,7 +107,9 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
   listen() {
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
-        debugLog(`[MySQL] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
+        debugLog(
+          `[MySQL] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
+        );
       })
       .on("error", (err) => {
         debugLog(`[MySQL] Error: ${err.message}`);

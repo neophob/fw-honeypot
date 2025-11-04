@@ -1,19 +1,14 @@
-import {HoneypotServer} from "../CreateHoneypot.js";
+import { HoneypotServer } from "../CreateHoneypot.js";
 
 export class AbstractHoneypotIntegration {
+  get config() {}
 
-  get config() {
-  }
-
-  set config(config) {
-  }
+  set config(config) {}
 
   /**
    * @param {HoneypotServer} server
    */
-  create(server) {
-  }
+  create(server) {}
 
-  listen() {
-  }
+  listen() {}
 }

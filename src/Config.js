@@ -1,4 +1,4 @@
-import {readFileSync} from "node:fs";
+import { readFileSync } from "node:fs";
 
 /**
  * @param {string} path
@@ -7,11 +7,11 @@ import {readFileSync} from "node:fs";
  */
 export const readConfig = (path, ignoreError = false) => {
   try {
-    return JSON.parse(readFileSync(path, 'utf8'))
+    return JSON.parse(readFileSync(path, "utf8"));
   } catch (e) {
     if (!ignoreError) {
-      console.error(e)
+      console.error(e);
     }
   }
-  return {}
-}
+  return {};
+};

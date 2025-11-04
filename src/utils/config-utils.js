@@ -1,12 +1,12 @@
 export const mergeConfigs = (configA, configB) => {
-  configA ??= {}
-  configB ??= {}
+  configA ??= {};
+  configB ??= {};
 
-  const merged = {...configB}
+  const merged = { ...configB };
 
   for (const [k, v] of Object.entries(configA)) {
-    merged[k] ??= v
+    merged[k] ??= v;
   }
 
-  return merged
-}
+  return merged;
+};

@@ -25,17 +25,20 @@ Beta)
 ### Steps
 
 1. Clone the repository:
+
    ```bash
    git clone ssh://git@github.com:22/SomethingWithPhp/fw-honeypot.git
    cd fw-honeypot
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Start the server:
+
    ```bash
    npm start
    ```
