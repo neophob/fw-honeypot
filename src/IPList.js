@@ -1,4 +1,5 @@
-import {debugLog} from "./utils/log-utils.js";
+import debug from 'debug';
+const debugLog = debug('IPList');
 import {IpAddress} from "./utils/ip-utils.js";
 import {readConfig} from "./Config.js";
 

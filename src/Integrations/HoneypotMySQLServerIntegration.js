@@ -3,7 +3,8 @@ import net from "net";
 import {splitIpAddress} from "../utils/ip-utils.js";
 import {HoneypotServer} from "../CreateHoneypot.js";
 import {mergeConfigs} from "../utils/config-utils.js";
-import {debugLog} from "../utils/log-utils.js";
+import debug from 'debug';
+const debugLog = debug('HoneypotMySQLServerIntegration');
 
 const MYSQL_HANDSHAKE = Buffer.from([
   0x0a, // Protocol version
@@ -94,10 +95,10 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
   listen() {
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
-        console.log(`[MySQL] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
+        debugLog(`[MySQL] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
       })
       .on("error", (err) => {
-        console.error(`[MySQL] Error: ${err.message}`);
+        debugLog(`[MySQL] Error: ${err.message}`);
       });
   }
 }

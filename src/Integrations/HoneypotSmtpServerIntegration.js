@@ -2,8 +2,9 @@ import {AbstractHoneypotIntegration} from "./AbstractHoneypotIntegration.js";
 import {HoneypotServer} from "../CreateHoneypot.js";
 import {mergeConfigs} from "../utils/config-utils.js";
 import {SMTPServer} from "smtp-server";
-import {debugLog} from "../utils/log-utils.js";
 import {splitIpAddress} from "../utils/ip-utils.js";
+import debug from 'debug';
+const debugLog = debug('HoneypotSmtpServerIntegration');
 
 export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
 
@@ -80,7 +81,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
   listen() {
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
-        console.log(`[SMTP] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
+        debugLog(`[SMTP] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
       })
   }
 }

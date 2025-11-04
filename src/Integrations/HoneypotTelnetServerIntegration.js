@@ -3,7 +3,8 @@ import net from "net";
 import {splitIpAddress} from "../utils/ip-utils.js";
 import {HoneypotServer} from "../CreateHoneypot.js";
 import {mergeConfigs} from "../utils/config-utils.js";
-import {debugLog} from "../utils/log-utils.js";
+import debug from 'debug';
+const debugLog = debug('HoneypotTelnetServerIntegration');
 
 const TELNET_BANNER = 'Welcome to Telnet Honeypot\r\n';
 
@@ -90,10 +91,10 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
   listen() {
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
-        console.log(`[Telnet] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
+        debugLog(`[Telnet] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
       })
       .on("error", (err) => {
-        console.error(`[Telnet] Error: ${err.message}`);
+        debugLog(`[Telnet] Error: ${err.message}`);
       });
   }
 }

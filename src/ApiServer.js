@@ -1,4 +1,6 @@
 import http from "http";
+import debug from 'debug';
+const debugLog = debug('ApiServer');
 import {mergeCidr} from "cidr-tools";
 
 export class ApiServer {
@@ -78,7 +80,7 @@ export class ApiServer {
     port ??= this.#honeypotServer.config.port
     host ??= this.#honeypotServer.config.host
     this.#server.listen(port, host, () => {
-      console.log(`[API-SERVER] listening on port ${host}:${port}`);
+      debugLog(`[API-SERVER] listening on port ${host}:${port}`);
     });
     return this
   }

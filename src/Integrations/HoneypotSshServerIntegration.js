@@ -3,7 +3,8 @@ import net from "net";
 import {splitIpAddress} from "../utils/ip-utils.js";
 import {HoneypotServer} from "../CreateHoneypot.js";
 import {mergeConfigs} from "../utils/config-utils.js";
-import {debugLog} from "../utils/log-utils.js";
+import debug from 'debug';
+const debugLog = debug('HoneypotSshServerIntegration');
 
 const SSH_BANNER = 'SSH-2.0-OpenSSH_8.6\r\n';
 
@@ -83,10 +84,10 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
   listen() {
     this.#server
       .listen(this.#config.port, this.#config.host, () => {
-        console.log(`[SSH] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
+        debugLog(`[SSH] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`);
       })
       .on("error", (err) => {
-        console.error(`Error: ${err.message}`);
+        debugLog(`Error: ${err.message}`);
       })
   }
 }
