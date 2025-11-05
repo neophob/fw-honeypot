@@ -52,7 +52,7 @@ const makeHoneypot = ({ v4 = ["1.2.3.4"], v6 = ["::1"] } = {}) => ({
     ipV4: v4,
     ipV6: v6,
   },
-  config: { port: 0, host: "127.0.0.1" },
+  config: { internalApiPort: 0, host: "127.0.0.1" },
 });
 
 test("GIVEN honeypot with IPv4 and IPv6 WHEN GET /blacklist THEN returns both in plain text", async () => {

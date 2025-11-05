@@ -77,7 +77,7 @@ export class ApiServer {
    * @return {ApiServer}
    */
   listen(port, host) {
-    port ??= this.#honeypotServer.config.port;
+    port ??= this.#honeypotServer.config.internalApiPort;
     host ??= this.#honeypotServer.config.host;
     this.#server.listen(port, host, () => {
       debugLog(`listening on port ${host}:${port}`);

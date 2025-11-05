@@ -17,7 +17,7 @@ test("GIVEN a minimal config WHEN runServer is called THEN createHoneypot.run is
   const readConfig = (path) => {
     return {
       integrations: [{ name: "Dummy" }],
-      honeypot: { port: 1234 },
+      honeypot: { internalApiPort: 1234 },
     };
   };
 

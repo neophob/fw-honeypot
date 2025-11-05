@@ -6,7 +6,7 @@ import debug from "debug";
 const debugLog = debug("HoneypotServer");
 
 const DEFAULT_BAN_DURATION_MS = 60 * 60 * 24 * 1000;
-const DEFAULT_API_SERVER_PORT = 3477;
+const DEFAULT_INTERNAL_API_PORT = 3477;
 const TICK_MS = 1000;
 const DEFAULT_API_SERVER_HOST = "0.0.0.0";
 
@@ -22,7 +22,7 @@ export class HoneypotServer {
    * @type {HoneypotServerConfig}
    */
   #config = {
-    port: DEFAULT_API_SERVER_PORT,
+    internalApiPort: DEFAULT_INTERNAL_API_PORT,
     host: DEFAULT_API_SERVER_HOST,
     banDurationMs: DEFAULT_BAN_DURATION_MS,
   };

@@ -57,7 +57,7 @@ The application uses a JSON configuration file (`.env.json`). Below is an exampl
 ```json
 {
   "honeypot": {
-    "port": 8080,
+    "internalApiPort": 8080,
     "banDurationMs": 300000
   },
   "integrations": [
@@ -74,7 +74,7 @@ The application uses a JSON configuration file (`.env.json`). Below is an exampl
 
 ### Key Options:
 
-- `honeypot.port`: Port for the honeypot API server.
+- `honeypot.internalApiPort`: Port for the honeypot API server.
 - `honeypot.banDurationMs`: Duration in milliseconds for how long an IP stays on the blacklist.
 - `integrations`: Array of integration configurations.
 
