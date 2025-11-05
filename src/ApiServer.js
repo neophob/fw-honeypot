@@ -80,8 +80,21 @@ export class ApiServer {
     port ??= this.#honeypotServer.config.port;
     host ??= this.#honeypotServer.config.host;
     this.#server.listen(port, host, () => {
-      debugLog(`[API-SERVER] listening on port ${host}:${port}`);
+      debugLog(`listening on port ${host}:${port}`);
     });
+    return this;
+  }
+
+  /**
+   * Stop the server if it's running.
+   * @return {ApiServer}
+   */
+  close() {
+    try {
+      this.#server.close();
+    } catch (err) {
+      debugLog(`close failed ${err.message}`);
+    }
     return this;
   }
 }
