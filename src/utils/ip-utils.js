@@ -43,9 +43,3 @@ export const splitIpAddress = (remoteAddress) => {
 
   return null;
 };
-
-const multipliers = [0x1000000, 0x10000, 0x100, 1];
-const ip2long = (ip) =>
-  ip.split(".").reduce((acc, part, i) => acc + part * multipliers[i], 0);
-const long2ip = (longValue) =>
-  multipliers.map((m) => Math.floor((longValue % (m * 0x100)) / m)).join(".");
