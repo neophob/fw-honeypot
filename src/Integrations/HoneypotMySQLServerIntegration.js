@@ -71,13 +71,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
         debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
-      if (honeypotServer.whitelist.contains(ip)) {
-        debugLog(`IP ${ip} is whitelisted. Closing connection.`);
-        socket.destroy();
-        return;
-      }
-
-      honeypotServer.blacklist.add(ip, config.banDurationMs);
+      honeypotServer.attacker.add(ip, config.banDurationMs);
 
       // Send handshake packet
       socket.write(MYSQL_HANDSHAKE);

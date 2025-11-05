@@ -64,12 +64,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
       onConnect(session, callback) {
         const ip = splitIpAddress(session.remoteAddress);
         debugLog(`Connection attempt from ${ip} - ${session.clientHostname}`);
-
-        if (honeypotServer.whitelist.contains(ip)) {
-          debugLog(`IP ${ip} is whitelisted.`);
-        } else {
-          honeypotServer.blacklist.add(ip, config.banDurationMs);
-        }
+        honeypotServer.attacker.add(ip, config.banDurationMs);
         callback();
       },
     });

@@ -16,8 +16,7 @@ export class HoneypotServer {
    */
   #integrations = [];
 
-  #blacklist;
-  #whitelist;
+  #attacker;
 
   /**
    * @type {HoneypotServerConfig}
@@ -43,15 +42,8 @@ export class HoneypotServer {
   /**
    * @return {IPList}
    */
-  get blacklist() {
-    return (this.#blacklist ??= this.#config.blacklist ?? new IPList());
-  }
-
-  /**
-   * @return {IPList}
-   */
-  get whitelist() {
-    return (this.#whitelist ??= this.#config.whitelist ?? new IPList());
+  get attacker() {
+    return (this.#attacker ??= this.#config.attacker ?? new IPList());
   }
 
   /**
@@ -78,21 +70,21 @@ export class HoneypotServer {
     }
 
     setInterval(() => {
-      const now = this.blacklist.getCurrentTimestamp();
-      const keys = this.blacklist.ipV4;
+      const now = this.attacker.getCurrentTimestamp();
+      const keys = this.attacker.ipV4;
       for (const key of keys) {
-        const timestamp = this.blacklist.getIpV4Timestamp(key);
+        const timestamp = this.attacker.getIpV4Timestamp(key);
         if (timestamp !== true && timestamp <= now) {
-          debugLog("remove blacklist ipV4 entry <%s>", key);
-          this.blacklist.del(key);
+          debugLog("remove attacker ipV4 entry <%s>", key);
+          this.attacker.del(key);
         }
       }
 
-      for (const key of this.blacklist.ipV6) {
-        const timestamp = this.blacklist.getIpV6Timestamp(key);
+      for (const key of this.attacker.ipV6) {
+        const timestamp = this.attacker.getIpV6Timestamp(key);
         if (timestamp !== true && timestamp <= now) {
-          debugLog("remove blacklist ipV6 entry <%s>", key);
-          this.blacklist.del(key);
+          debugLog("remove attacker ipV6 entry <%s>", key);
+          this.attacker.del(key);
         }
       }
     }, TICK_MS);

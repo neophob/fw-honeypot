@@ -61,13 +61,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
         debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
-      if (honeypotServer.whitelist.contains(ip)) {
-        debugLog(`IP ${ip} is whitelisted. Closing connection.`);
-        socket.destroy();
-        return;
-      }
-
-      honeypotServer.blacklist.add(ip, config.banDurationMs);
+      honeypotServer.attacker.add(ip, config.banDurationMs);
       socket.write(SSH_BANNER);
 
       socket.on("data", (data) => {

@@ -45,10 +45,10 @@ export class ApiServer {
           let webResponse;
 
           if (useIpv4) {
-            response.ipV4 = mergeCidr(honeypotServer.blacklist.ipV4);
+            response.ipV4 = mergeCidr(honeypotServer.attacker.ipV4);
           }
           if (useIpv6) {
-            response.ipV6 = mergeCidr(honeypotServer.blacklist.ipV6);
+            response.ipV6 = mergeCidr(honeypotServer.attacker.ipV6);
           }
 
           if (asJson) {
