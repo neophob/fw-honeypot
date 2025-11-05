@@ -1,4 +1,3 @@
 node_modules/
 .idea/
-blacklist.json
-whitelist.json
+attacker.json
