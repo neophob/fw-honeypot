@@ -6,7 +6,7 @@
     "dev": "DEBUG='*' nodemon server.js",
     "format:write": "npx -y prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
     "start": "DEBUG='*' node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "description": "A rudimentary and extensible honeypot framework for managing blacklists, IP blocking, and integration with firewalls. (Beta)",
   "repository": {
@@ -27,6 +27,6 @@
     "cidr-tools": "^11.0.3",
     "debug": "^4.4.3",
     "ip-regex": "^5.0.0",
-    "smtp-server": "^3.16.0"
+    "smtp-server": "^3.16.1"
   }
 }
