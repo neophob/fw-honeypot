@@ -1,0 +1,48 @@
+# Name of your honeypot service
+service: TODO
+primary_role: honeypot
+
+# Docker image to use (ensure ARM64 compatibility for Raspberry Pi)
+image: TODO
+
+# Servers where Dionaea should be deployed
+servers:
+  honeypot:
+    - 1.2.3.4  # replace with your Pi's IP
+
+ssh:
+  user: TODO           # your SSH user
+  port: 22              # your SSH port
+
+# No web proxy needed for Dionaea
+proxy:
+  ssl: false
+
+# Optional: registry credentials if using a private registry
+registry:
+  server: ghcr.io
+  username: neophob
+  password:
+     - KAMAL_REGISTRY_PASSWORD
+
+# Builder setup (optional, mostly for local Docker builds)
+builder:
+  arch: amd64
+  # args: {}   # build args if needed
+
+healthcheck:
+  path: /up
+  port: 8080
+
+# Inject environment variables into the container (optional)
+env:
+  clear:
+    DIONAEA_LOG_PATH: /opt/dionaea/logs
+
+# Persistent volumes for logs/malware captures
+volumes:
+  - "./data/dionaea:/opt/dionaea"
+
+# Aliases to make SSHing/logging easier (optional)
+aliases:
+  shell: honeypot exec --interactive --reuse "bash"

@@ -27,6 +27,13 @@ export class ApiServer {
 
     const apiServer = http.createServer((req, res) => {
       if (req.method === "GET") {
+        // Kamal healthcheck route
+        if (req.url === "/up") {
+          res.writeHead(200, { "Content-Type": "text/plain" });
+          res.end("OK");
+          return;
+        }
+
         const [, blacklist, version, json] = req.url.split("/");
         if (
           blacklist === "blacklist" &&
