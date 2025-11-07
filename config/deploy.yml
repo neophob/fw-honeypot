@@ -40,7 +40,7 @@ env:
 
 # Persistent volumes for logs/malware captures
 volumes:
-  - "./data:/opt/dionaea"
+  - "./data:/opt/honeypot"
 
 # Aliases to make SSHing/logging easier (optional)
 aliases:

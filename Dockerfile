@@ -16,5 +16,8 @@ EXPOSE 445 3306 3322 3323 3325 8080
 
 ENV DEBUG=*
 
+# TODO User?
+# HEALTHCHECK
+
 # Start the application
 CMD ["node", "server.js"]
