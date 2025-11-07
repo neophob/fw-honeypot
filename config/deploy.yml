@@ -8,7 +8,7 @@ image: neophob/fw-honeypot:latest
 # Servers where Dionaea should be deployed
 servers:
   honeypot:
-    - 1.2.3.4
+    - KAMAL_HOST
 
 ssh:
   user: ubuntu           # your SSH user
