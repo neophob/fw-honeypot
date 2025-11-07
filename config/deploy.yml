@@ -9,6 +9,10 @@ image: neophob/fw-honeypot
 servers:
   honeypot:
     - 51.195.102.237
+  options:
+    publish:
+      - "3325:25"
+      - "3323:23"
 
 ssh:
   user: ubuntu           # your SSH user
