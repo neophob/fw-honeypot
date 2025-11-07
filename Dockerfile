@@ -20,7 +20,7 @@ ENV NODE_ENV=production
 ENV DEBUG=*
 
 # HEALTHCHECK
-
+RUN chown -R runner:runner /app
 USER runner
 
 # Start the application
