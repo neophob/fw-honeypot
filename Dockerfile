@@ -14,10 +14,14 @@ COPY . .
 # Expose honeypot ports
 EXPOSE 445 3306 3322 3323 3325 8080
 
+RUN useradd -s /bin/bash -m runner
+
 ENV DEBUG=*
 
 # TODO User?
 # HEALTHCHECK
+
+USER runner
 
 # Start the application
 CMD ["node", "server.js"]
