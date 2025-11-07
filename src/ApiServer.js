@@ -26,6 +26,8 @@ export class ApiServer {
     const that = new this(honeypotServer);
 
     const apiServer = http.createServer((req, res) => {
+      debugLog("Request: %o %o", req.method, req.url);
+
       if (req.method === "GET") {
         // Kamal healthcheck route
         if (req.url === "/up") {

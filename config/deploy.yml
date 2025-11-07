@@ -1,9 +1,9 @@
 # Name of your honeypot service
-service: TODO
+service: my-honeypot
 primary_role: honeypot
 
 # Docker image to use (ensure ARM64 compatibility for Raspberry Pi)
-image: TODO
+image: neophob/fw-honeypot:latest
 
 # Servers where Dionaea should be deployed
 servers:
@@ -36,12 +36,11 @@ healthcheck:
 
 # Inject environment variables into the container (optional)
 env:
-  clear:
-    DIONAEA_LOG_PATH: /opt/dionaea/logs
+  DEBUG: "*"
 
 # Persistent volumes for logs/malware captures
 volumes:
-  - "./data/dionaea:/opt/dionaea"
+  - "./data:/opt/dionaea"
 
 # Aliases to make SSHing/logging easier (optional)
 aliases:

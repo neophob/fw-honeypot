@@ -8,6 +8,9 @@
     "start": "DEBUG='*' node server.js",
     "test": "node --test",
     "docker:build": "docker build -t fw-honeypot .",
+    "registry:login": "echo $GITHUB_TOKEN | docker login ghcr.io -u neophob --password-stdin",
+    "docker:tag": "docker tag fw-honeypot:latest ghcr.io/neophob/fw-honeypot:latest",
+    "docker:push": "docker push ghcr.io/neophob/fw-honeypot:latest",
     "docker:run": "docker run --rm  -p 445:445 -p 3306:3306 -p 3322:3322 -p 3323:3323 -p 3325:3325 -p 8080:8080 fw-honeypot"
   },
   "description": "A rudimentary and extensible honeypot framework for managing blacklists, IP blocking, and integration with firewalls. (Beta)",
