@@ -11,6 +11,14 @@ servers:
     hosts:
     - 51.195.102.237
     proxy: false
+    options:
+      publish:
+        - "23:3323"
+        - "25:3325"
+        - "445:445"
+        - "3306:3306"
+        - "3322:3322"
+        - "8080:8080"
 
 ssh:
   user: ubuntu           # your SSH user
