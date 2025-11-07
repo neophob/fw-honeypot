@@ -4,7 +4,7 @@ import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import debug from "debug";
-const debugLog = debug("HoneypotTelnetServerIntegration");
+const debugLog = debug("TelnetServerIntegration");
 
 const TELNET_BANNER = "Welcome to Telnet Honeypot\r\n";
 

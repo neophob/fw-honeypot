@@ -48,19 +48,33 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
       banner: "welcome",
       logger: false,
       disabledCommands: ["AUTH"],
+
       onData(stream, session, callback) {
-        stream.pipe(process.stdout);
-        //stream.resume()
-        stream.on("end", callback);
+        let data = "";
+
+        stream.on("data", (chunk) => {
+          data += chunk.toString();
+        });
+
+        stream.on("end", () => {
+          debugLog(data);
+          callback();
+        });
+
+        // Resume the stream if paused
+        stream.resume();
       },
+
       onRcptTo(address, session, callback) {
         debugLog(`Recipient: ${address.address}`);
         return callback();
       },
+
       onMailFrom(address, session, callback) {
         debugLog(`Mail from: ${address.address}`);
         return callback();
       },
+
       onConnect(session, callback) {
         const ip = splitIpAddress(session.remoteAddress);
         debugLog(`Connection attempt from ${ip} - ${session.clientHostname}`);

@@ -2,7 +2,7 @@ import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import debug from "debug";
-const debugLog = debug("HoneypotSMBServerIntegration");
+const debugLog = debug("SMBServerIntegration");
 import net from "net";
 
 const SMB_BANNER = Buffer.from([
@@ -69,6 +69,43 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
 
       socket.on("data", (data) => {
         debugLog(`Data from ${ip}: ${data.toString("hex")}`);
+        if (data.length < 4) {
+          debugLog("Too short for NetBIOS header");
+          return;
+        }
+        const nbLen = data.readUInt32BE(0);
+        const smb = data.slice(4); // SMB packet starts here
+        debugLog(`NetBIOS len=${nbLen} received smb len=${smb.length}`);
+        debugLog(`Raw SMB: ${smb.toString("hex")}`);
+
+        // simple check that it's an SMB packet
+        if (
+          smb.length >= 5 &&
+          smb[0] === 0xff &&
+          smb[1] === 0x53 &&
+          smb[2] === 0x4d &&
+          smb[3] === 0x42
+        ) {
+          const cmd = smb[4];
+          debugLog(`SMB command byte: 0x${cmd.toString(16)}`);
+
+          if (cmd === 0x72) {
+            debugLog(`SMB_NEGOTIATE from ${ip}`);
+            //TODO
+          }
+
+          if (cmd === 0x73) {
+            debugLog(`SMB_SESSION_SETUP from ${ip}`);
+            //TODO
+          }
+
+          if (cmd === 0x75) {
+            debugLog("SMB_TREE_CONNECT from " + ip);
+            //TODO
+          }
+        } else {
+          debugLog(`Non-SMB or malformed packet from ${ip}`);
+        }
       });
 
       // Verbindung nach 10 Sekunden beenden

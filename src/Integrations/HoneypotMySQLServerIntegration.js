@@ -4,7 +4,7 @@ import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import debug from "debug";
-const debugLog = debug("HoneypotMySQLServerIntegration");
+const debugLog = debug("MySQLServerIntegration");
 
 const MYSQL_HANDSHAKE = Buffer.from([
   0x0a, // Protocol version
