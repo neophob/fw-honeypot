@@ -3,7 +3,7 @@ service: my-honeypot
 primary_role: honeypot
 
 # Docker image to use (ensure ARM64 compatibility for Raspberry Pi)
-image: neophob/fw-honeypot:latest
+image: neophob/fw-honeypot
 
 # Servers where Dionaea should be deployed
 servers:
