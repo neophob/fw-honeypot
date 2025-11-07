@@ -16,9 +16,9 @@ EXPOSE 445 3306 3322 3323 3325 8080
 
 RUN useradd -s /bin/bash -m runner
 
+ENV NODE_ENV=production
 ENV DEBUG=*
 
-# TODO User?
 # HEALTHCHECK
 
 USER runner
