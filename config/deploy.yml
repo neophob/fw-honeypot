@@ -5,25 +5,16 @@ primary_role: honeypot
 # Docker image to use (ensure ARM64 compatibility for Raspberry Pi)
 image: neophob/fw-honeypot
 
-# Servers where Dionaea should be deployed
+# Servers where the app should be deployed
 servers:
   honeypot:
+    hosts:
     - 51.195.102.237
-  options:
-    publish:
-      - "3325:25"
-      - "3323:23"
+    proxy: false
 
 ssh:
   user: ubuntu           # your SSH user
   port: 22              # your SSH port
-
-# No web proxy needed for Dionaea
-proxy:
-  ssl: false
-  app_port: 8080
-  healthcheck:
-    path: /up
 
 # Optional: registry credentials if using a private registry
 registry:
