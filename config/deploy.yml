@@ -8,15 +8,18 @@ image: neophob/fw-honeypot:latest
 # Servers where Dionaea should be deployed
 servers:
   honeypot:
-    - 1.2.3.4  # replace with your Pi's IP
+    - 1.2.3.4
 
 ssh:
-  user: TODO           # your SSH user
+  user: ubuntu           # your SSH user
   port: 22              # your SSH port
 
 # No web proxy needed for Dionaea
 proxy:
   ssl: false
+  app_port: 8080
+  healthcheck:
+    path: /up
 
 # Optional: registry credentials if using a private registry
 registry:
@@ -29,10 +32,6 @@ registry:
 builder:
   arch: amd64
   # args: {}   # build args if needed
-
-healthcheck:
-  path: /up
-  port: 8080
 
 # Inject environment variables into the container (optional)
 env:
