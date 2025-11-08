@@ -15,6 +15,12 @@ process.on("uncaughtException", (err) => {
   stats.addErrorMessage("ROOT#" + err.message);
 });
 
+process.on("unhandledRejection", (reason, promise) => {
+  debugLog("Unhandled Rejection:", err);
+  stats.addErrorMessage("ROOT#" + err.message);
+  process.exit(1);
+});
+
 if (
   process.argv[1] &&
   pathResolve(process.argv[1]) === pathResolve(entryPath)
