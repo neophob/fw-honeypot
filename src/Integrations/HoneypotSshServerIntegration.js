@@ -54,7 +54,9 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
       stats.increaseCounter("SSH_CONNECTION");
 
       if (!ip) {
-        debugLog(`Invalid IP address <${socket.remoteAddress}>. Connection closed.`);
+        debugLog(
+          `Invalid IP address <${socket.remoteAddress}>. Connection closed.`,
+        );
         stats.increaseCounter("SSH_INVALID_IP");
         socket.destroy();
         return;
