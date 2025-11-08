@@ -101,9 +101,10 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
       const idleTimer = setTimeout(() => {
         socket.destroy();
         debugLog(`Connection from ${ip} has been closed (idle).`);
-      }, 15000);
+      }, 32000);
 
       socket.on("close", () => {
+        debugLog(`Connection from ${ip} has been closed (active).`);
         clearTimeout(idleTimer);
       });
     });
