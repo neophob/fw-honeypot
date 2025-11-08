@@ -4,8 +4,12 @@ import { mergeConfigs } from "../utils/config-utils.js";
 import { SMTPServer } from "smtp-server";
 import { splitIpAddress } from "../utils/ip-utils.js";
 import { stats } from "../utils/statistics.js";
+import { track } from "../utils/tracker.js";
 import debug from "debug";
-const debugLog = debug("Smtp");
+
+const SERVICE_NAME = "SMTP";
+
+const debugLog = debug(SERVICE_NAME);
 
 export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
   #server;
@@ -59,7 +63,8 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
         });
 
         stream.on("end", () => {
-          debugLog(data);
+          track(ip, SERVICE_NAME, data.toString());
+          debugLog(data.toString());
           callback();
         });
 

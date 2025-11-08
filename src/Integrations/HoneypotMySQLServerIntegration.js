@@ -4,8 +4,11 @@ import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
+import { track } from "../utils/tracker.js";
 import debug from "debug";
-const debugLog = debug("MySQL");
+
+const SERVICE_NAME = "MySQL";
+const debugLog = debug(SERVICE_NAME);
 
 const MYSQL_HANDSHAKE = Buffer.from([
   0x0a, // Protocol version
@@ -87,6 +90,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
       socket.on("data", (data) => {
         debugLog(`Received data from ${ip}: ${data.toString("hex")}`);
         stats.increaseCounter("MYSQL_DATA");
+        track(ip, SERVICE_NAME, data.toString());
 
         // Simulate a failed login
         const failurePacket = Buffer.from([

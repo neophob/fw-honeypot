@@ -10,14 +10,6 @@ import debug from "debug";
 const SERVICE_NAME = "SMB";
 const debugLog = debug(SERVICE_NAME);
 
-const SMB_BANNER = Buffer.from([
-  0xff,
-  0x53,
-  0x4d,
-  0x42, // "SMB" Header
-  0x72, // Command (Negotiate Protocol)
-]);
-
 export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
   #server;
 
@@ -73,10 +65,6 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
       });
 
       //honeypotServer.attacker.add(ip, config.banDurationMs);
-
-      // We'll not immediately write a "banner" — we respond properly when a client sends data.
-      // But to keep old behaviour, you can send the SMB header first (optional)
-      // socket.write(SMB_BANNER);
 
       // Buffer incoming data until we can process a full NetBIOS packet
       let recvBuf = Buffer.alloc(0);
