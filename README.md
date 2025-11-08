@@ -15,7 +15,6 @@
 
 ## TODO
 
-- export stats via REST
 - blacklist stuff - get rid off and use statistics
 - dump whole traffic and let a LLM decide, what this traffic was, what happended and how malicious it is
 - hexdump

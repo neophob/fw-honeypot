@@ -29,19 +29,6 @@ if (
     const config = readConfig(resolve(base, ".env.json"));
     await runServer({ config });
     stats.setValue("start", new Date().toLocaleString());
-
-    setInterval(
-      () => {
-        const statistics = stats.getStatistic();
-        const errors = stats.getLastErrors();
-
-        if (Object.keys(statistics).length || Object.keys(errors).length) {
-          debugLog("Statistics:", statistics);
-          if (Object.keys(errors).length) debugLog("Errors:", errors);
-        }
-      },
-      5 * 60 * 1000,
-    );
   } catch (err) {
     debugLog(`Fatal error during startup: ${err.message}`);
     process.exit(1);

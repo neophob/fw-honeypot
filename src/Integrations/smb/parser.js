@@ -115,7 +115,6 @@ function parseSmbDialects(smbPacket) {
   return dialects;
 }
 
-
 function parseSessionSetupStrings(smbPacket) {
   // naive extraction: search for two UTF-16LE NUL-terminated strings in payload
   const payload = smbPacket.slice(32);

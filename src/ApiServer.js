@@ -1,7 +1,7 @@
 import http from "http";
 import debug from "debug";
 const debugLog = debug("ApiServer");
-import { mergeCidr } from "cidr-tools";
+import { stats } from "./utils/statistics.js";
 
 export class ApiServer {
   /**
@@ -30,8 +30,13 @@ export class ApiServer {
 
       if (req.method === "GET") {
         if (req.url === "/") {
-          res.writeHead(200, { "Content-Type": "text/plain" });
-          res.end("TXT");
+          res.writeHead(200, { "Content-Type": "text/json" });
+          res.end(
+            JSON.stringify({
+              stats: stats.getStatistic(),
+              lastErrors: stats.getLastErrors(),
+            }),
+          );
           return;
         }
 
@@ -44,6 +49,7 @@ export class ApiServer {
       }
 
       res.writeHead(404, { "Content-Type": "text/plain" });
+      stats.addErrorMessage(`HTTP_GET_UNKNOWN: ${req.url}`);
       res.end("Not Found");
     });
 
