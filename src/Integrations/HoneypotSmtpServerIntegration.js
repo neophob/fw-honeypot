@@ -4,7 +4,7 @@ import { mergeConfigs } from "../utils/config-utils.js";
 import { SMTPServer } from "smtp-server";
 import { splitIpAddress } from "../utils/ip-utils.js";
 import debug from "debug";
-const debugLog = debug("HoneypotSmtpServerIntegration");
+const debugLog = debug("Smtp");
 
 export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
   #server;
