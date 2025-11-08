@@ -3,6 +3,7 @@ import net from "net";
 import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
+import { stats } from "../utils/statistics.js";
 import debug from "debug";
 const debugLog = debug("Telnet");
 
@@ -49,14 +50,17 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
       const ip = splitIpAddress(socket.remoteAddress);
 
       debugLog(`New connection from %o`, socket.address());
+      stats.increaseCounter("TELNET_CONNECTION");
 
       if (!ip) {
         debugLog("Invalid IP address. Connection will be closed.");
+        stats.increaseCounter("TELNET_INVALID_IP");
         socket.destroy();
         return;
       }
 
       socket.on("error", (err) => {
+        stats.increaseCounter("TELNET_ERROR");
         debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
@@ -66,6 +70,7 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
       socket.write("login: ");
 
       socket.on("data", (data) => {
+        stats.increaseCounter("TELNET_DATA");
         const input = data.toString().trim();
         debugLog(`Input from ${ip}: ${input}`);
         socket.write("Invalid login.\r\nlogin: ");
