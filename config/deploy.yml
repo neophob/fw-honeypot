@@ -18,7 +18,6 @@ servers:
         - "445:445"
         - "3306:3306"
         - "2222:3322"
-        - "8080:8080"
 
 ssh:
   user: ubuntu           # your SSH user
