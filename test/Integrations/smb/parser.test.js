@@ -22,7 +22,7 @@ test("parse SMB Packet SMB_COM_NEGOTIATE", () => {
 
   // THEN
   assert.equal(socketData.length, 1);
-  assert.equal(socketData[0].length, 80);
+  assert.equal(socketData[0].length, 85);
   const resultAsString = socketData[0].toString();
   assert.equal(resultAsString.includes("Windows 2000"), true);
   assert.equal(resultAsString.includes("WORKGROUP"), true);

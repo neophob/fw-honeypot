@@ -92,34 +92,29 @@ function addNetbiosHeader(smbBuf) {
   return out;
 }
 
-// Very simple dialect parser: looks for ASCII strings in the payload that look like dialects.
-// This is forgiving; SMB dialects often come after a byte 0x02 prefix per dialect.
 function parseSmbDialects(smbPacket) {
-  // find bytes after the SMB header (offset 32 is often where variable bytes start)
-  const payload = smbPacket.slice(32);
+  const wordCount = smbPacket[32] || 0;
+  const payload = smbPacket.slice(33 + wordCount); // skip header + wordCount
   const dialects = [];
   let i = 0;
+
   while (i < payload.length) {
-    const b = payload[i];
-    if (b === 0x02) {
-      // dialect string length prefix in many SMB negotiate requests
-      // read until 0x00
+    if (payload[i] === 0x02) {
       let j = i + 1;
       while (j < payload.length && payload[j] !== 0x00) j++;
-      const s = payload.slice(i + 1, j).toString("ascii");
-      dialects.push(s);
+      dialects.push(payload.slice(i + 1, j).toString("ascii"));
       i = j + 1;
     } else {
-      // fallback: scan for ASCII substrings separated by 0x00
       const z = payload.indexOf(0x00, i);
       if (z === -1) break;
-      const s2 = payload.slice(i, z).toString("ascii");
-      if (s2.length > 0) dialects.push(s2);
+      const s = payload.slice(i, z).toString("ascii");
+      if (s.length) dialects.push(s);
       i = z + 1;
     }
   }
   return dialects;
 }
+
 
 function parseSessionSetupStrings(smbPacket) {
   // naive extraction: search for two UTF-16LE NUL-terminated strings in payload
@@ -137,63 +132,37 @@ function parseSessionSetupStrings(smbPacket) {
   };
 }
 
-// Build a minimal negotiate response (SMB1). This is a *simplified* fixed response.
-// It includes SMB header (ff 'SMB' 0x72) and a small set of fields + strings.
-// This is intentionally minimal but plausible.
 function buildNegotiateResponse({
   serverName = "webserver2k.test",
   serverOS = "Windows 2000 5.0",
-  domain = "",
+  domain = "WORKGROUP",
   dialect = "NT LM 0.12",
 } = {}) {
-  // This is a small handcrafted SMB1 NEGOTIATE_RESPONSE packet.
-  // For robustness you'd craft each field carefully; this is a reasonable emulation blob.
-  const serverNameBuf = Buffer.from(serverName + "\u0000", "ascii");
-  const serverOsBuf = Buffer.from(serverOS + "\u0000", "ascii");
-  const domainBuf = Buffer.from(domain + "\u0000", "ascii");
+  const serverNameBuf = Buffer.from(serverName + "\0", "ascii");
+  const serverOsBuf = Buffer.from(serverOS + "\0", "ascii");
+  const domainBuf = Buffer.from(domain + "\0", "ascii");
 
-  // We'll create a very small response body — note sizes/offsets are simplified.
-  const header = Buffer.from([
-    0xff,
-    0x53,
-    0x4d,
-    0x42, // 'SMB'
-    0x72, // command = NEGOTIATE
-    0x00,
-    0x00,
-    0x00,
-    0x00, // status
-    0x18, // flags (just an example)
-    0x01,
-    0x28, // flags2 (keep small)
-    0x00,
-    0x00, // PIDHigh
-    0x00,
-    0x00,
-    0x00,
-    0x00, // security features
-    0x00,
-    0x00, // reserved
-    0x00,
-    0x00, // TID
-    0x00,
-    0x00, // PIDLow
-    0x00,
-    0x00, // UID
-    0x00,
-    0x00, // MID
-  ]);
+  // SMB Header 32 bytes
+  const header = Buffer.alloc(32);
+  header[0] = 0xff;
+  header[1] = 0x53;
+  header[2] = 0x4d;
+  header[3] = 0x42; // 'SMB'
+  header[4] = 0x72; // command = NEGOTIATE
+  // Status (5-8) = 0
+  header[9] = 0x18; // Flags
+  header.writeUInt16LE(0x2801, 10); // Flags2 NT LM 0.12 + Unicode support
+  // TID (24-25), PIDLow (26-27), UID (28-29), MID (30-31) all zero for minimal response
 
-  // Build body fields: dialect index (2 bytes) + server OS + server name...
-  const body = Buffer.concat([
-    Buffer.from([0x11]), // Word count (fake/small)
-    Buffer.from([0x00]), // filler
-    Buffer.from([0x00, 0x00]), // Byte count placeholder (we don't strictly enforce)
-    serverOsBuf,
-    domainBuf,
-    serverNameBuf,
-  ]);
+  // Body
+  const wordCount = Buffer.from([0x01]); // WordCount = 1 (DialectIndex)
+  const dialectIndex = Buffer.from([0x00, 0x00]); // first dialect
+  const byteCount = Buffer.alloc(2); // will fill later
 
+  const stringsBuf = Buffer.concat([serverOsBuf, domainBuf, serverNameBuf]);
+  byteCount.writeUInt16LE(stringsBuf.length, 0);
+
+  const body = Buffer.concat([wordCount, dialectIndex, byteCount, stringsBuf]);
   return Buffer.concat([header, body]);
 }
 
