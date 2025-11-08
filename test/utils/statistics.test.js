@@ -2,20 +2,20 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { stats } from "../../src/utils/statistics.js";
 
-test("sets and retrieves values correctly", () => {
+test("Statistics: sets and retrieves values correctly", () => {
   stats.clearStatistics();
   stats.setValue("users", 5);
   assert.deepEqual(stats.getStatistic(), { users: 5 });
 });
 
-test("increases counters correctly", () => {
+test("Statistics: increases counters correctly", () => {
   stats.clearStatistics();
   stats.increaseCounter("hits");
   stats.increaseCounter("hits", 2);
   assert.deepEqual(stats.getStatistic(), { hits: 3 });
 });
 
-test("tracks last errors correctly", () => {
+test("Statistics: tracks last errors correctly", () => {
   stats.clearStatistics();
   stats.addErrorMessage("Error A");
   stats.addErrorMessage("Error B");
@@ -24,7 +24,7 @@ test("tracks last errors correctly", () => {
   assert.ok(Object.values(errors).includes("Error B"));
 });
 
-test("clears statistics properly", () => {
+test("Statistics: clears statistics properly", () => {
   stats.setValue("foo", 1);
   stats.addErrorMessage("oops");
   stats.clearStatistics();
@@ -32,7 +32,7 @@ test("clears statistics properly", () => {
   assert.deepEqual(stats.getLastErrors(), {});
 });
 
-test("supports custom errorEntriesToTrack", () => {
+test("Statistics: supports custom errorEntriesToTrack", () => {
   stats.clearStatistics();
   for (let i = 0; i < 20; i++) {
     stats.addErrorMessage(`Error ${i}`);

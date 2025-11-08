@@ -4,10 +4,12 @@ import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
+import { track } from "../utils/tracker.js";
 import debug from "debug";
-const debugLog = debug("Ssh");
 
 const SSH_BANNER = "SSH-2.0-OpenSSH_8.6\r\n";
+const SERVICE_NAME = "SSH";
+const debugLog = debug(SERVICE_NAME);
 
 export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
   #server;
@@ -72,6 +74,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
 
       socket.on("data", (data) => {
         debugLog(`Received data from ${ip}: ${data.toString()}`);
+        track(ip, SERVICE_NAME, data.toString());
         stats.increaseCounter("SSH_DATA");
 
         if (!handshakeDone) {

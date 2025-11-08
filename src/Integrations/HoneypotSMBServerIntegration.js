@@ -1,11 +1,14 @@
+import net from "net";
 import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
+import { track } from "../utils/tracker.js";
 import { handleSmbPacket } from "./smb/parser.js";
 import debug from "debug";
-const debugLog = debug("SMB");
-import net from "net";
+
+const SERVICE_NAME = "SMB";
+const debugLog = debug(SERVICE_NAME);
 
 const SMB_BANNER = Buffer.from([
   0xff,
@@ -81,6 +84,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
       socket.on("data", (data) => {
         recvBuf = Buffer.concat([recvBuf, data]);
         stats.increaseCounter("SMB_DATA");
+        track(ip, SERVICE_NAME, data.toString());
 
         // NetBIOS Session Service header is 4 bytes: [0] = 0x00, [1..3] length (big-endian)
         while (recvBuf.length >= 4) {

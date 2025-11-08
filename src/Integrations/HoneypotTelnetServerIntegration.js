@@ -4,10 +4,12 @@ import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
+import { track } from "../utils/tracker.js";
 import debug from "debug";
-const debugLog = debug("Telnet");
 
 const TELNET_BANNER = "Welcome to Telnet Honeypot\r\n";
+const SERVICE_NAME = "Telnet";
+const debugLog = debug(SERVICE_NAME);
 
 export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration {
   #server;
@@ -48,7 +50,6 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
 
     const server = net.createServer((socket) => {
       const ip = splitIpAddress(socket.remoteAddress);
-
       debugLog(`New connection from %o`, socket.address());
       stats.increaseCounter("TELNET_CONNECTION");
 
@@ -75,6 +76,7 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
         stats.increaseCounter("TELNET_DATA");
         const input = data.toString().trim();
         debugLog(`Data ${ip}: ${input}`);
+        track(ip, SERVICE_NAME, input);
         socket.write("Invalid login.\r\nlogin: ");
       });
 
