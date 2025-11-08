@@ -1,6 +1,8 @@
 import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
+import stats from "../utils/statistics.js";
+
 import debug from "debug";
 const debugLog = debug("SMB");
 import net from "net";
@@ -50,14 +52,18 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
     this.#server = net.createServer((socket) => {
       const ip = socket.remoteAddress;
       debugLog(`New connection from %o`, socket.address());
+      stats.incrementCounter("SMB_CONNECTION");
 
       if (!ip) {
         debugLog("Invalid IP address. Connection closed.");
+        stats.incrementCounter("SMB_INVALID_IP");
         socket.destroy();
         return;
       }
 
       socket.on("error", (err) => {
+        stats.incrementCounter("SMB_ERROR");
+        stats.addErrorMessage("SMB#" + err.message);
         debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
@@ -72,6 +78,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
 
       socket.on("data", (data) => {
         recvBuf = Buffer.concat([recvBuf, data]);
+        stats.incrementCounter("SMB_DATA");
 
         // NetBIOS Session Service header is 4 bytes: [0] = 0x00, [1..3] length (big-endian)
         while (recvBuf.length >= 4) {

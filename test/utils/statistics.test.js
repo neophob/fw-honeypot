@@ -1,0 +1,41 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import stats, { Statistics } from "../../src/utils/statistics.js";
+
+test("sets and retrieves values correctly", () => {
+  stats.clearStatistics();
+  stats.setValue("users", 5);
+  assert.deepEqual(stats.getStatistic(), { users: 5 });
+});
+
+test("increases counters correctly", () => {
+  stats.clearStatistics();
+  stats.increaseCounter("hits");
+  stats.increaseCounter("hits", 2);
+  assert.deepEqual(stats.getStatistic(), { hits: 3 });
+});
+
+test("tracks last errors correctly", () => {
+  stats.clearStatistics();
+  stats.addErrorMessage("Error A");
+  stats.addErrorMessage("Error B");
+  const errors = stats.getLastErrors();
+  assert.ok(Object.values(errors).includes("Error A"));
+  assert.ok(Object.values(errors).includes("Error B"));
+});
+
+test("clears statistics properly", () => {
+  stats.setValue("foo", 1);
+  stats.addErrorMessage("oops");
+  stats.clearStatistics();
+  assert.deepEqual(stats.getStatistic(), {});
+  assert.deepEqual(stats.getLastErrors(), {});
+});
+
+test("supports custom errorEntriesToTrack", () => {
+  const customStats = new Statistics({ errorEntriesToTrack: 3 });
+  for (let i = 0; i < 5; i++) {
+    customStats.addErrorMessage(`Error ${i}`);
+  }
+  assert.equal(Object.keys(customStats.getLastErrors()).length, 3);
+});
