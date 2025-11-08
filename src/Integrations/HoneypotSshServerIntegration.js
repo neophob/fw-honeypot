@@ -3,6 +3,7 @@ import net from "net";
 import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
+import { stats } from "../utils/statistics.js";
 import debug from "debug";
 const debugLog = debug("Ssh");
 
@@ -50,15 +51,18 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
       const ip = splitIpAddress(socket.remoteAddress);
 
       debugLog(`New connection from %o`, socket.address());
+      stats.increaseCounter("SSH_CONNECTION");
 
       if (!ip) {
         debugLog("Invalid IP address. Connection will be closed.");
+        stats.increaseCounter("SSH_INVALID_IP");
         socket.destroy();
         return;
       }
 
       socket.on("error", (err) => {
         debugLog(`Socket error from ${ip}: ${err.message}`);
+        stats.increaseCounter("SSH_ERROR");
       });
 
       honeypotServer.attacker.add(ip, config.banDurationMs);
@@ -66,6 +70,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
 
       socket.on("data", (data) => {
         debugLog(`Received data from ${ip}: ${data.toString()}`);
+        stats.increaseCounter("SSH_DATA");
 
         if (!handshakeDone) {
           // Mock KEXINIT reply

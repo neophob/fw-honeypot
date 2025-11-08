@@ -2,7 +2,6 @@ import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
-
 import debug from "debug";
 const debugLog = debug("SMB");
 import net from "net";
@@ -27,7 +26,6 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
 
   constructor(config) {
     super();
-    stats.increaseCounter("SMB_HI");
     this.config = mergeConfigs(this.config, config);
   }
 

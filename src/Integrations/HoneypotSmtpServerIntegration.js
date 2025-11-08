@@ -3,6 +3,7 @@ import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { SMTPServer } from "smtp-server";
 import { splitIpAddress } from "../utils/ip-utils.js";
+import { stats } from "../utils/statistics.js";
 import debug from "debug";
 const debugLog = debug("Smtp");
 
@@ -51,6 +52,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
 
       onData(stream, session, callback) {
         let data = "";
+        stats.increaseCounter("SMTP_DATA");
 
         stream.on("data", (chunk) => {
           data += chunk.toString();
@@ -67,11 +69,13 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
 
       onRcptTo(address, session, callback) {
         debugLog(`Recipient: ${address.address}`);
+        stats.increaseCounter("SMTP_TO");
         return callback();
       },
 
       onMailFrom(address, session, callback) {
         debugLog(`Mail from: ${address.address}`);
+        stats.increaseCounter("SMTP_FROM");
         return callback();
       },
 
@@ -79,6 +83,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
         const ip = splitIpAddress(session.remoteAddress);
         debugLog(`Connection attempt from ${ip} - ${session.clientHostname}`);
         honeypotServer.attacker.add(ip, config.banDurationMs);
+        stats.increaseCounter("SMTP_CONNECTION");
         callback();
       },
     });
