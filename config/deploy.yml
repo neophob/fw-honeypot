@@ -17,11 +17,11 @@ servers:
         - "25:3325"
         - "445:445"
         - "3306:3306"
-        - "2222:3322"
+        - "22:3322"
 
 ssh:
   user: ubuntu           # your SSH user
-  port: 22              # your SSH port
+  port: 22222            # your SSH port
 
 # Optional: registry credentials if using a private registry
 registry:
