@@ -53,7 +53,7 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
       stats.increaseCounter("TELNET_CONNECTION");
 
       if (!ip) {
-        debugLog("Invalid IP address. Connection will be closed.");
+        debugLog(`Invalid IP address <${socket.remoteAddress}>. Connection closed.`);
         stats.increaseCounter("TELNET_INVALID_IP");
         socket.destroy();
         return;

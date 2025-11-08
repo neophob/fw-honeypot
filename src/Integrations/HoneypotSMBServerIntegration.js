@@ -54,7 +54,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
       stats.increaseCounter("SMB_CONNECTION");
 
       if (!ip) {
-        debugLog("Invalid IP address. Connection closed.");
+        debugLog(`Invalid IP address <${socket.remoteAddress}>. Connection closed.`);
         stats.increaseCounter("SMB_INVALID_IP");
         socket.destroy();
         return;

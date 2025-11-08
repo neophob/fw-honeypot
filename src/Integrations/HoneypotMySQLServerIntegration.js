@@ -64,7 +64,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
       stats.increaseCounter("MYSQL_CONNECTION");
 
       if (!ip) {
-        debugLog("Invalid IP address. Closing connection.");
+        debugLog(`Invalid IP address <${socket.remoteAddress}>. Connection closed.`);
         stats.increaseCounter("MYSQL_INVALID_IP");
         socket.destroy();
         return;
