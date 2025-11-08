@@ -24,6 +24,7 @@ if (
     const config = readConfig(resolve(base, ".env.json"));
     const attackerList = IPList.loadFromFile(resolve(base, "attacker.json"));
     await runServer({ config, attackerList });
+    stats.setValue("start", new Date().toLocaleString());
 
     setInterval(
       () => {
