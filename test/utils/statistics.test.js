@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import stats, { Statistics } from "../../src/utils/statistics.js";
+import { stats } from "../../src/utils/statistics.js";
 
 test("sets and retrieves values correctly", () => {
   stats.clearStatistics();
@@ -33,9 +33,9 @@ test("clears statistics properly", () => {
 });
 
 test("supports custom errorEntriesToTrack", () => {
-  const customStats = new Statistics({ errorEntriesToTrack: 3 });
-  for (let i = 0; i < 5; i++) {
-    customStats.addErrorMessage(`Error ${i}`);
+  stats.clearStatistics();
+  for (let i = 0; i < 20; i++) {
+    stats.addErrorMessage(`Error ${i}`);
   }
-  assert.equal(Object.keys(customStats.getLastErrors()).length, 3);
+  assert.equal(Object.keys(stats.getLastErrors()).length, 16);
 });

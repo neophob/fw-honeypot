@@ -7,19 +7,6 @@ class Statistics {
     this.nrErrorsToTrack = options?.errorEntriesToTrack ?? 16;
     this.lasterrors = {};
     this.errorSlot = 0;
-
-    setInterval(
-      () => {
-        const stats = this.getStatistic();
-        const errors = this.getLastErrors();
-
-        if (Object.keys(stats).length || Object.keys(errors).length) {
-          debug("Statistics:", stats);
-          if (Object.keys(errors).length) debug("Errors:", errors);
-        }
-      },
-      5 * 60 * 1000,
-    );
   }
 
   setValue(key, value) {
@@ -61,8 +48,4 @@ class Statistics {
   }
 }
 
-const statisticsInstance = new Statistics();
-
-// Export both the class and the singleton instance
-export { Statistics };
-export default statisticsInstance;
+export const stats = new Statistics();

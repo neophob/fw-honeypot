@@ -3,7 +3,7 @@ import net from "net";
 import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
-import stats from "../utils/statistics.js";
+import { stats } from "../utils/statistics.js";
 import debug from "debug";
 const debugLog = debug("MySQL");
 
@@ -61,17 +61,17 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
     this.#server = net.createServer((socket) => {
       const ip = splitIpAddress(socket.remoteAddress);
       debugLog(`New connection from %o`, socket.address());
-      stats.incrementCounter("MYSQL_CONNECTION");
+      stats.increaseCounter("MYSQL_CONNECTION");
 
       if (!ip) {
         debugLog("Invalid IP address. Closing connection.");
-        stats.incrementCounter("MYSQL_INVALID_IP");
+        stats.increaseCounter("MYSQL_INVALID_IP");
         socket.destroy();
         return;
       }
 
       socket.on("error", (err) => {
-        stats.incrementCounter("MYSQL_ERROR");
+        stats.increaseCounter("MYSQL_ERROR");
         stats.addErrorMessage("MYSQL#" + err.message);
         debugLog(`Socket error from ${ip}: ${err.message}`);
       });
