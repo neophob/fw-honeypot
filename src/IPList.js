@@ -58,7 +58,7 @@ export class IPList {
    * @return {IPList}
    */
   add(ip, banDuration) {
-    debugLog(`Add IP ${ip} to attacker list.`);
+    //debugLog(`Add IP ${ip} to attacker list.`);
     const now = this.getCurrentTimestamp();
     if (ip.ipV4 && this.#list.v4[ip.ipV4] !== true)
       this.#list.v4[ip.ipV4] = now + banDuration;

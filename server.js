@@ -4,6 +4,8 @@ import { resolve as pathResolve, dirname, resolve } from "path";
 import { readConfig } from "./src/Config.js";
 import { IPList } from "./src/IPList.js";
 import { stats } from "./src/utils/statistics.js";
+import debug from "debug";
+const debugLog = debug("Root");
 
 // If this module is executed directly (node server.js), start the server.
 const entryPath = fileURLToPath(import.meta.url);
@@ -24,8 +26,8 @@ if (
         const errors = stats.getLastErrors();
 
         if (Object.keys(statistics).length || Object.keys(errors).length) {
-          debug("Statistics:", statistics);
-          if (Object.keys(errors).length) debug("Errors:", errors);
+          debugLog("Statistics:", statistics);
+          if (Object.keys(errors).length) debugLog("Errors:", errors);
         }
       },
       5 * 60 * 1000,

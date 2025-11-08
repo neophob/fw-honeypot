@@ -142,7 +142,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
             : dialects[0] || "NT LM 0.12";
 
         const resp = buildNegotiateResponse({
-          serverName: "MY-HONEYPOT",
+          serverName: "webserver2k.test",
           serverOS: "Windows 2000 5.0",
           domain: "WORKGROUP",
           dialect: chosen,
@@ -250,7 +250,7 @@ function parseSessionSetupStrings(smbPacket) {
 // It includes SMB header (ff 'SMB' 0x72) and a small set of fields + strings.
 // This is intentionally minimal but plausible.
 function buildNegotiateResponse({
-  serverName = "HONEYPOT",
+  serverName = "webserver2k.test",
   serverOS = "Windows 2000 5.0",
   domain = "",
   dialect = "NT LM 0.12",
