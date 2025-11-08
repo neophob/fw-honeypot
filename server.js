@@ -10,6 +10,11 @@ const debugLog = debug("Root");
 // If this module is executed directly (node server.js), start the server.
 const entryPath = fileURLToPath(import.meta.url);
 
+process.on("uncaughtException", (err) => {
+  debugLog("Unhandled Exception:", err);
+  stats.addErrorMessage("ROOT#" + err.message);
+});
+
 if (
   process.argv[1] &&
   pathResolve(process.argv[1]) === pathResolve(entryPath)
