@@ -69,7 +69,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
         debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
-      honeypotServer.attacker.add(ip, config.banDurationMs);
+      //honeypotServer.attacker.add(ip, config.banDurationMs);
 
       // We'll not immediately write a "banner" — we respond properly when a client sends data.
       // But to keep old behaviour, you can send the SMB header first (optional)

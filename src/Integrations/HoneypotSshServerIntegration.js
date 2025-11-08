@@ -67,7 +67,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
         stats.increaseCounter("SSH_ERROR");
       });
 
-      honeypotServer.attacker.add(ip, config.banDurationMs);
+      //honeypotServer.attacker.add(ip, config.banDurationMs);
       socket.write(SSH_BANNER);
 
       socket.on("data", (data) => {

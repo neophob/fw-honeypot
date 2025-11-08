@@ -38,6 +38,7 @@ builder:
 # Inject environment variables into the container (optional)
 env:
   DEBUG: "*"
+  LOG_DEST: "/opt/honeypot/dump.txt"
 
 # Persistent volumes for logs/malware captures
 volumes:

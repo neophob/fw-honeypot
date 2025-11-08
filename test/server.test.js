@@ -21,10 +21,6 @@ test("GIVEN a minimal config WHEN runServer is called THEN createHoneypot.run is
     };
   };
 
-  const IPList = {
-    loadFromFile: () => ({ prefilled: true }),
-  };
-
   const createHoneypot = (integrations, honeypot) => {
     createHoneypotArgs = { integrations, honeypot };
     return {
@@ -36,7 +32,6 @@ test("GIVEN a minimal config WHEN runServer is called THEN createHoneypot.run is
 
   const deps = {
     readConfig,
-    IPList,
     createHoneypot,
     // make path helpers trivial since our stubs don't use the paths
     fileURLToPath: () => "/",
@@ -46,7 +41,6 @@ test("GIVEN a minimal config WHEN runServer is called THEN createHoneypot.run is
       Dummy: DummyIntegration,
     },
     config: readConfig(),
-    attackerList: IPList.loadFromFile(),
   };
 
   // WHEN
@@ -59,10 +53,6 @@ test("GIVEN a minimal config WHEN runServer is called THEN createHoneypot.run is
     "integrations should be an array",
   );
   assert.equal(createHoneypotArgs.integrations.length, 1);
-  assert.ok(
-    createHoneypotArgs.honeypot.attacker.prefilled,
-    "honeypot should have attacker prefilled",
-  );
   assert.ok(
     createHoneypotArgs.integrations[0] instanceof DummyIntegration,
     "integration instance should be created from map",

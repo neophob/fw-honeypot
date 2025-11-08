@@ -82,7 +82,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
       onConnect(session, callback) {
         const ip = splitIpAddress(session.remoteAddress);
         debugLog(`Connection attempt from ${ip} - ${session.clientHostname}`);
-        honeypotServer.attacker.add(ip, config.banDurationMs);
+       //honeypotServer.attacker.add(ip, config.banDurationMs);
         stats.increaseCounter("SMTP_CONNECTION");
         callback();
       },

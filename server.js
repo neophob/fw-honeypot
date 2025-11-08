@@ -2,7 +2,6 @@ import runServer from "./src/server.js";
 import { fileURLToPath } from "url";
 import { resolve as pathResolve, dirname, resolve } from "path";
 import { readConfig } from "./src/Config.js";
-import { IPList } from "./src/IPList.js";
 import { stats } from "./src/utils/statistics.js";
 import debug from "debug";
 const debugLog = debug("Root");
@@ -28,8 +27,7 @@ if (
   try {
     const base = resolve(dirname(fileURLToPath(import.meta.url)), ".");
     const config = readConfig(resolve(base, ".env.json"));
-    const attackerList = IPList.loadFromFile(resolve(base, "attacker.json"));
-    await runServer({ config, attackerList });
+    await runServer({ config });
     stats.setValue("start", new Date().toLocaleString());
 
     setInterval(

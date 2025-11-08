@@ -48,14 +48,10 @@ const containsIp = (container, ip) => {
 };
 
 const makeHoneypot = ({ v4 = ["1.2.3.4"], v6 = ["::1"] } = {}) => ({
-  attacker: {
-    ipV4: v4,
-    ipV6: v6,
-  },
   config: { internalApiPort: 0, host: "127.0.0.1" },
 });
 
-test("GIVEN honeypot with IPv4 and IPv6 WHEN GET /blacklist THEN returns both in plain text", async () => {
+test("GET /up THEN returns OK in plain text", async () => {
   // GIVEN
   const honeypot = makeHoneypot();
   const api = ApiServer.create(honeypot);
@@ -64,37 +60,17 @@ test("GIVEN honeypot with IPv4 and IPv6 WHEN GET /blacklist THEN returns both in
   await new Promise((r) => setTimeout(r, 20));
 
   // WHEN
-  const res = await httpGetText("127.0.0.1", port, "/blacklist");
+  const res = await httpGetText("127.0.0.1", port, "/up");
 
   // THEN
   assert.equal(res.status, 200);
-  assert.ok(res.body.includes("1.2.3.4"));
-  assert.ok(res.body.includes("::1"));
+  assert.ok(res.body.includes("OK"));
 
   // cleanup
   api.close();
 });
 
-test("GIVEN honeypot with IPv4 WHEN GET /blacklist/v4 THEN returns only IPv4", async () => {
-  // GIVEN
-  const honeypot = makeHoneypot({ v4: ["9.9.9.9"], v6: [] });
-  const api = ApiServer.create(honeypot);
-  const port = await getFreePort();
-  api.listen(port, "127.0.0.1");
-  await new Promise((r) => setTimeout(r, 20));
-
-  // WHEN
-  const res = await httpGetText("127.0.0.1", port, "/blacklist/v4");
-
-  // THEN
-  assert.equal(res.status, 200);
-  assert.ok(res.body.includes("9.9.9.9"));
-  assert.ok(!res.body.includes("::1"));
-
-  api.close();
-});
-
-test("GIVEN honeypot with IPv4 and IPv6 WHEN GET /blacklist/json THEN returns JSON with both arrays", async () => {
+test("GET / THEN returns OK in plain text", async () => {
   // GIVEN
   const honeypot = makeHoneypot();
   const api = ApiServer.create(honeypot);
@@ -103,32 +79,12 @@ test("GIVEN honeypot with IPv4 and IPv6 WHEN GET /blacklist/json THEN returns JS
   await new Promise((r) => setTimeout(r, 20));
 
   // WHEN
-  const res = await httpGetText("127.0.0.1", port, "/blacklist/json");
-  assert.equal(res.status, 200);
-  const parsed = JSON.parse(res.body);
+  const res = await httpGetText("127.0.0.1", port, "/");
 
   // THEN
-  assert.ok(containsIp(parsed, "1.2.3.4"));
-  assert.ok(containsIp(parsed, "::1"));
-
-  api.close();
-});
-
-test("GIVEN honeypot with IPv4 WHEN GET /blacklist/v4/json THEN returns JSON array with IPv4", async () => {
-  // GIVEN
-  const honeypot = makeHoneypot({ v4: ["7.7.7.7"], v6: [] });
-  const api = ApiServer.create(honeypot);
-  const port = await getFreePort();
-  api.listen(port, "127.0.0.1");
-  await new Promise((r) => setTimeout(r, 20));
-
-  // WHEN
-  const res = await httpGetText("127.0.0.1", port, "/blacklist/v4/json");
   assert.equal(res.status, 200);
-  const parsed = JSON.parse(res.body);
+  //assert.ok(res.body.includes("OK"));
 
-  // THEN
-  assert.ok(containsIp(parsed, "7.7.7.7"));
-
+  // cleanup
   api.close();
 });

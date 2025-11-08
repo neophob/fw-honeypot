@@ -12,7 +12,6 @@ import { HoneypotSMBServerIntegration } from "./Integrations/HoneypotSMBServerIn
 export async function runServer(deps = {}) {
   const createHoneypot = deps.createHoneypot ?? _createHoneypot;
   const config = deps.config;
-  const attackerList = deps.attackerList;
   const integrationMap = deps.integrationMap ?? {
     HoneypotSshServerIntegration,
     HoneypotSmtpServerIntegration,
@@ -22,10 +21,7 @@ export async function runServer(deps = {}) {
   };
 
   if (!config) throw new Error("Config must be provided to runServer");
-  if (!attackerList)
-    throw new Error("Attacker list must be provided to runServer");
   config.honeypot = config.honeypot ?? {};
-  config.honeypot.attacker = attackerList;
 
   const integrations = (config.integrations || []).map((integration) => {
     if (typeof integration === "string") {

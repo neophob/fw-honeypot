@@ -66,7 +66,7 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
         debugLog(`Socket error from ${ip}: ${err.message}`);
       });
 
-      honeypotServer.attacker.add(ip, config.banDurationMs);
+      //honeypotServer.attacker.add(ip, config.banDurationMs);
 
       socket.write(TELNET_BANNER);
       socket.write("login: ");

@@ -29,46 +29,16 @@ export class ApiServer {
       debugLog("Request: %o %o", req.method, req.url);
 
       if (req.method === "GET") {
+        if (req.url === "/") {
+          res.writeHead(200, { "Content-Type": "text/plain" });
+          res.end("TXT");
+          return;
+        }
+
         // Kamal healthcheck route
         if (req.url === "/up") {
           res.writeHead(200, { "Content-Type": "text/plain" });
           res.end("OK");
-          return;
-        }
-
-        const [, blacklist, version, json] = req.url.split("/");
-        if (
-          blacklist === "blacklist" &&
-          ["v4", "v6", "json", undefined].includes(version) &&
-          ["json", undefined].includes(json)
-        ) {
-          res.writeHead(200, { "Content-Type": "text/plain" });
-          const useIpv4 =
-            ["v4", "json"].includes(version) || version === undefined;
-          const useIpv6 =
-            ["v6", "json"].includes(version) || version === undefined;
-          const asJson = [json, version].includes("json");
-          const mode = useIpv4 && useIpv6 ? "both" : useIpv4 ? "ipV4" : "ipV6";
-          const both = mode === "both";
-          const response = {};
-          let webResponse;
-
-          if (useIpv4) {
-            response.ipV4 = mergeCidr(honeypotServer.attacker.ipV4);
-          }
-          if (useIpv6) {
-            response.ipV6 = mergeCidr(honeypotServer.attacker.ipV6);
-          }
-
-          if (asJson) {
-            webResponse = JSON.stringify(both ? response : response[mode]);
-          } else {
-            if (response.ipV4) response.ipV4 = response.ipV4.join("\n");
-            if (response.ipV6) response.ipV6 = response.ipV6.join("\n");
-            webResponse = Object.values(response).filter(Boolean).join("\n");
-          }
-          res.write(webResponse);
-          res.end();
           return;
         }
       }
