@@ -74,7 +74,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
 
       socket.on("data", (data) => {
         debugLog(`Received data from ${ip}: ${data.toString()}`);
-        track(ip, SERVICE_NAME, data.toString());
+        track(ip, SERVICE_NAME, data.toString("hex"));
         stats.increaseCounter("SSH_DATA");
 
         if (!handshakeDone) {

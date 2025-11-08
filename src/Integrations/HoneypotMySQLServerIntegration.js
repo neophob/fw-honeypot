@@ -90,7 +90,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
       socket.on("data", (data) => {
         debugLog(`Received data from ${ip}: ${data.toString("hex")}`);
         stats.increaseCounter("MYSQL_DATA");
-        track(ip, SERVICE_NAME, data.toString());
+        track(ip, SERVICE_NAME, data.toString("hex"));
 
         // Simulate a failed login
         const failurePacket = Buffer.from([

@@ -35,8 +35,8 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
   }
   entry.timeout = setTimeout(async () => {
     try {
-      debugLog(`FLUSHIT ${entry.tracker.getTextSummary()}`);
-      fs.appendFileSync(LOG_FILE, entry.tracker.getTextSummary() + "\n", "utf8");
+      debugLog(`FLUSHIT ${entry.tracker.ip} ${entry.tracker.serviceName}`);
+      fs.appendFileSync(LOG_FILE, entry.tracker.getTextSummary(), "utf8");
     } catch (err) {
       debugLog(`Error flushing tracker for ${key}: ${err.message}`);
     } finally {

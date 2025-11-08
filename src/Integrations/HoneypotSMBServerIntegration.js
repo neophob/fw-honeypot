@@ -72,7 +72,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
       socket.on("data", (data) => {
         recvBuf = Buffer.concat([recvBuf, data]);
         stats.increaseCounter("SMB_DATA");
-        track(ip, SERVICE_NAME, data.toString());
+        track(ip, SERVICE_NAME, data.toString("hex"));
 
         // NetBIOS Session Service header is 4 bytes: [0] = 0x00, [1..3] length (big-endian)
         while (recvBuf.length >= 4) {
