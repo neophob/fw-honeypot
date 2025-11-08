@@ -43,7 +43,7 @@ if (
       5 * 60 * 1000,
     );
   } catch (err) {
-    console.error(err);
+    debugLog(`Fatal error during startup: ${err.message}`);
     process.exit(1);
   }
 }
