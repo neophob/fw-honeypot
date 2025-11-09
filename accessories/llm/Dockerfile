@@ -38,5 +38,5 @@ RUN mkdir -p /opt/models && \
 EXPOSE 5555
 
 # Run llama-server directly
-#CMD ["/opt/llama.cpp/build/bin/llama-server", "--model", "/opt/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf", "--host", "0.0.0.0", "--port", "5555", "--threads", "3", "--no-webui"]
-CMD ["/opt/llama.cpp/build/bin/llama-server", "--model", "/opt/models/SmolLM3-3B-GGUF.gguf", "--host", "0.0.0.0", "--port", "5555", "--threads", "3", "--no-webui"]
+CMD ["/opt/llama.cpp/build/bin/llama-server", "--model", "/opt/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf", "--host", "0.0.0.0", "--port", "5555", "--threads", "3", "--no-webui"]
+#CMD ["/opt/llama.cpp/build/bin/llama-server", "--model", "/opt/models/SmolLM3-3B-GGUF.gguf", "--host", "0.0.0.0", "--port", "5555", "--threads", "3", "--no-webui"]

@@ -77,6 +77,28 @@ export function handleSmbPacket(socket, ip, smbPacket) {
     return;
   }
 
+  // SMB_COM_TRANSACTION (0x25)
+  if (command === 0x25) {
+    // Very small, plausible transaction response: success, no payload.
+    debugLog(`Transaction request from ${ip}`);
+    const resp = buildTransactionResponse({ incoming: smbPacket });
+    socket.write(addNetbiosHeader(resp));
+    debugLog(`Sent transaction response for cmd 0x25 to ${ip}`);
+    return;
+  }
+
+  // SMB_COM_NT_CREATE_ANDX (commonly seen as 0x32 in some logs)
+  if (command === 0x32) {
+    // Provide a minimal NT Create AndX response: return a FID and mirror UID.
+    debugLog(`NT Create/AndX (0x32) request from ${ip}`);
+    const uid = smbPacket.length >= 29 ? smbPacket.readUInt16LE(28) : 0x0000;
+    const fid = 0x0042; // arbitrary file id assigned by honeypot
+    const resp = buildNtCreateAndXResponse({ uid, fid });
+    socket.write(addNetbiosHeader(resp));
+    debugLog(`Sent NT Create AndX response (fid=0x${fid.toString(16)}) to ${ip}`);
+    return;
+  }
+
   // For other commands, send a generic "not implemented" style response that looks plausible:
   const genericResp = buildGenericErrorResponse(command);
   socket.write(addNetbiosHeader(genericResp));
@@ -222,7 +244,7 @@ function parseTreeConnectRequest(smbPacket) {
   if (unicode) {
     // try to find a UTF-16LE backslash sequence (\\)
     const txt = payload.toString("utf16le").replace(/\0+$/, "");
-    // find first occurrence of \\ (two backslashes)
+    // find first occurrence of \\\\ (two backslashes)
     const idx = txt.indexOf("\\\\");
     if (idx !== -1) {
       // path likely continues until a NUL or until next 0x02 separator
@@ -317,4 +339,60 @@ function buildGenericErrorResponse(command) {
   ]);
   const body = Buffer.from([0x00]); // minimal
   return Buffer.concat([header, body]);
+}
+
+// --- New minimal implementations for cmd 0x25 (TRANS) and 0x32 (NT_CREATE_ANDX)
+
+function buildTransactionResponse({ incoming } = {}) {
+  // Build a minimal successful transaction response
+  // 32-byte header, command 0x25, status 0, some basic flags
+  const header = Buffer.alloc(32, 0);
+  header[0] = 0xff;
+  header[1] = 0x53;
+  header[2] = 0x4d;
+  header[3] = 0x42;
+  header[4] = 0x25; // TRANS
+  // status left 0 = success
+  header[9] = 0x18; // flags (optional)
+  header.writeUInt16LE(0x2801, 10); // flags2
+
+  // Mirror UID from request if present
+  if (incoming && incoming.length >= 30) {
+    try {
+      const uid = incoming.readUInt16LE(28);
+      header.writeUInt16LE(uid & 0xffff, 28);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // Minimal body: WordCount = 0, ByteCount = 0
+  const body = Buffer.from([0x00, 0x00, 0x00]);
+  // (0x00 = WordCount, followed by 2-byte ByteCount = 0)
+  return Buffer.concat([header, body]);
+}
+
+function buildNtCreateAndXResponse({ uid = 0x0000, fid = 0x0042 } = {}) {
+  // Minimal NT Create AndX response: header + WordCount=1 + FID + ByteCount=0
+  const header = Buffer.alloc(32, 0);
+  header[0] = 0xff;
+  header[1] = 0x53;
+  header[2] = 0x4d;
+  header[3] = 0x42;
+  header[4] = 0x32; // NT Create AndX (logged as 0x32 in user's environment)
+  // status bytes 5..8 left zero => success
+  header[9] = 0x18; // flags
+  header.writeUInt16LE(0x2801, 10); // flags2
+  // set UID
+  header.writeUInt16LE(uid & 0xffff, 28);
+
+  // WordCount = 1, FID (2 bytes)
+  const wordCount = Buffer.from([0x01]);
+  const fidBuf = Buffer.alloc(2);
+  fidBuf.writeUInt16LE(fid & 0xffff, 0);
+
+  // ByteCount = 0
+  const byteCount = Buffer.alloc(2, 0x00);
+
+  return Buffer.concat([header, wordCount, fidBuf, byteCount]);
 }
