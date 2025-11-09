@@ -17,6 +17,8 @@
 
 - blacklist stuff - get rid off and use statistics
 - dump whole traffic and let a LLM decide, what this traffic was, what happended and how malicious it is
+Analyze the traffic my honeypot received, figure out what the intent of this commands were in one short sentence ("Summary"). then print our color (red/yellow/green) depending on how evil/malicious the sent data is - where red is the worst
+
 - hexdump
 
 ```
