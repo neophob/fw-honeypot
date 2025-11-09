@@ -41,13 +41,12 @@ test("Tracker: multiple data entries flushed together", async () => {
   const ip = "10.0.0.5";
   const service = "http";
 
-  track(ip, service, "GET /index.html", 200);
-  track(ip, service, "POST /login", 100);
+  track(ip, service, "00000045ff534d4272000000001801c8000000000000000000000000ffff000000000000002200024e54204c4d20302e31320002534d4220322e3030320002534d4220322e3f3f3f00", 200);
+  track(ip, service, "5353482d322e302d476f0d0a", 100);
 
   await wait(400);
-
-  assert(lastWrite.content.includes("GET /index.html"), "First entry missing");
-  assert(lastWrite.content.includes("POST /login"), "Second entry missing");
+  assert(lastWrite.content.includes("45ff534d4272000000001801c80000"), "First entry missing");
+  assert(lastWrite.content.includes("5353482d322e302d476f0d0a"), "Second entry missing");
 });
 
 test("Tracker: remove duplicates", async () => {
@@ -63,7 +62,7 @@ test("Tracker: remove duplicates", async () => {
   track(ip, service, data, 100);
 
   await wait(400);
-  assert(lastWrite.content.includes('\nPAYLOAD\n\n'));
+  assert(lastWrite.content.includes("\nPAYLOAD\n\n"));
 });
 
 test("Tracker: clean cancels timers", async () => {

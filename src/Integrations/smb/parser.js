@@ -233,7 +233,7 @@ function parseTreeConnectRequest(smbPacket) {
     } else {
       // fallback: any utf16le printable run that contains backslash
       const re = /(\\{2}[^\\\u0000]*)/;
-      const m = txt.match(re);
+      const m = txt?.match(re);
       if (m) path = m[1];
     }
   } else {
@@ -246,7 +246,7 @@ function parseTreeConnectRequest(smbPacket) {
       if (parts.length > 1) service = parts[1] || null;
     } else {
       // try a conservative substring search
-      const m = txt.match(/(\\\\[^\0]+)/);
+      const m = txt?.match(/(\\\\[^\0]+)/);
       if (m) path = m[1];
     }
   }

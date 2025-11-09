@@ -36,7 +36,12 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
   entry.timeout = setTimeout(async () => {
     try {
       debugLog(`FLUSHIT ${entry.tracker.ip} ${entry.tracker.serviceName}`);
-      fs.appendFileSync(LOG_FILE, entry.tracker.getTextSummary() + "\n\n", "utf8");
+      fs.appendFileSync(
+        LOG_FILE,
+        entry.tracker.getTextSummary() + "\n\n",
+        "utf8",
+      );
+      //TODO process it
     } catch (err) {
       debugLog(`Error flushing tracker for ${key}: ${err.message}`);
     } finally {
@@ -57,7 +62,7 @@ export function clean() {
   dataStore.clear();
 }
 
-class Tracker {
+export class Tracker {
   constructor(ip, serviceName) {
     this.ip = ip;
     this.serviceName = serviceName;
@@ -72,6 +77,25 @@ class Tracker {
 
   //TODO limit rawData size
   getTextSummary() {
-    return `IP: ${this.ip}, service: ${this.serviceName}, time: ${new Date()}\n${this.rawData.join(" ")}`;
+    const str = extractStringsFromHex(this.rawData.join(""));
+    return `IP: ${this.ip}, service: ${this.serviceName}, time: ${new Date()}\n${this.rawData.join(" ")}\n${str}`;
   }
+}
+
+function extractStringsFromHex(hex) {
+  const buf = Buffer.from(hex.replace(/[^0-9a-fA-F]/g, ''), 'hex');
+
+  let result = '';
+  for (let i = 0; i < buf.length; i++) {
+    const b = buf[i];
+    // Check if printable ASCII
+    if (b >= 0x20 && b <= 0x7e) {
+      result += String.fromCharCode(b);
+    } else {
+      // Replace non-printable with space
+      result += ' ';
+    }
+  }
+  // Collapse multiple spaces
+  return result.replace(/\s+/g, ' ').trim();
 }

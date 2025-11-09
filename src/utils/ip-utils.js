@@ -30,13 +30,11 @@ export class IpAddress {
  */
 export const splitIpAddress = (remoteAddress) => {
   const matchesIpV4 = remoteAddress.match(ipRegex.v4());
-
   if (matchesIpV4) {
     return new IpAddress(matchesIpV4[0]);
   }
 
   const matchesIpV6 = remoteAddress.match(ipRegex.v6());
-
   if (matchesIpV6) {
     return new IpAddress(null, matchesIpV6[0]);
   }

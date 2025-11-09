@@ -17,7 +17,7 @@
 
 - blacklist stuff - get rid off and use statistics
 - dump whole traffic and let a LLM decide, what this traffic was, what happended and how malicious it is
-Analyze the traffic my honeypot received, figure out what the intent of this commands were in one short sentence ("Summary"). then print our color (red/yellow/green) depending on how evil/malicious the sent data is - where red is the worst
+  Analyze the traffic my honeypot received, figure out what the intent of this commands were in one short sentence ("Summary"). then print our color (red/yellow/green) depending on how evil/malicious the sent data is - where red is the worst
 
 --
 Analyze the traffic my honeypot received, figure out what the intent of these commands were in one short sentence (Summary). Then print our color (red/yellow/green) depending on how evil/malicious the sent data is - where red is the worst. Guess the attackers origin country (maybe using language settings or other id), if its not clear use "N/A"
@@ -31,6 +31,7 @@ Color: <red/yellow/green>
 Origin (guess): <country or N/A, with optional justification in parentheses>
 Do not include raw packet data, hex, or any extra information.
 --
+
 - hexdump
 
 ```
