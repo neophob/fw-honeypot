@@ -65,7 +65,9 @@ class Tracker {
   }
 
   addData(data) {
-    this.rawData.push(data);
+    if (!this.rawData.includes(data)) {
+      this.rawData.push(data);
+    }
   }
 
   //TODO limit rawData size

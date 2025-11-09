@@ -50,6 +50,22 @@ test("Tracker: multiple data entries flushed together", async () => {
   assert(lastWrite.content.includes("POST /login"), "Second entry missing");
 });
 
+test("Tracker: remove duplicates", async () => {
+  clean();
+  lastWrite = null;
+
+  const ip = "10.0.0.5";
+  const service = "http";
+  const data = "PAYLOAD";
+
+  track(ip, service, data, 200);
+  track(ip, service, data, 200);
+  track(ip, service, data, 100);
+
+  await wait(400);
+  assert(lastWrite.content.includes('\nPAYLOAD\n\n'));
+});
+
 test("Tracker: clean cancels timers", async () => {
   lastWrite = null;
 
