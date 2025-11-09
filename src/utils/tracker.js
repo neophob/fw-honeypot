@@ -68,6 +68,7 @@ class Tracker {
     this.rawData.push(data);
   }
 
+  //TODO limit rawData size
   getTextSummary() {
     return `IP: ${this.ip}, service: ${this.serviceName}, time: ${new Date()}\n${this.rawData.join(" ")}`;
   }
