@@ -95,7 +95,9 @@ export function handleSmbPacket(socket, ip, smbPacket) {
     const fid = 0x0042; // arbitrary file id assigned by honeypot
     const resp = buildNtCreateAndXResponse({ uid, fid });
     socket.write(addNetbiosHeader(resp));
-    debugLog(`Sent NT Create AndX response (fid=0x${fid.toString(16)}) to ${ip}`);
+    debugLog(
+      `Sent NT Create AndX response (fid=0x${fid.toString(16)}) to ${ip}`,
+    );
     return;
   }
 

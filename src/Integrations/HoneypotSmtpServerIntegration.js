@@ -8,7 +8,6 @@ import { track } from "../utils/tracker.js";
 import debug from "debug";
 
 const SERVICE_NAME = "SMTP";
-
 const debugLog = debug(SERVICE_NAME);
 
 export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {

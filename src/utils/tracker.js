@@ -78,14 +78,14 @@ export class Tracker {
   //TODO limit rawData size
   getTextSummary() {
     const str = extractStringsFromHex(this.rawData.join(""));
-    return `IP: ${this.ip}, service: ${this.serviceName}, time: ${new Date()}\n${this.rawData.join(" ")}\n${str}`;
+    return `>#### IP: ${this.ip}, service: ${this.serviceName}, time: ${new Date()}\n${this.rawData.join(" ")}\n${str}`;
   }
 }
 
 function extractStringsFromHex(hex) {
-  const buf = Buffer.from(hex.replace(/[^0-9a-fA-F]/g, ''), 'hex');
+  const buf = Buffer.from(hex.replace(/[^0-9a-fA-F]/g, ""), "hex");
 
-  let result = '';
+  let result = "";
   for (let i = 0; i < buf.length; i++) {
     const b = buf[i];
     // Check if printable ASCII
@@ -93,9 +93,9 @@ function extractStringsFromHex(hex) {
       result += String.fromCharCode(b);
     } else {
       // Replace non-printable with space
-      result += ' ';
+      result += " ";
     }
   }
   // Collapse multiple spaces
-  return result.replace(/\s+/g, ' ').trim();
+  return result.replace(/\s+/g, " ").trim();
 }

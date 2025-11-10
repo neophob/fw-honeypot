@@ -10,13 +10,22 @@ const debugLog = debug("Root");
 const entryPath = fileURLToPath(import.meta.url);
 
 process.on("uncaughtException", (err) => {
-  debugLog("Unhandled Exception:", err);
-  stats.addErrorMessage("ROOT#" + err.message);
+  debugLog(`Unhandled Exception: ${err}`);
+  let firstStackLine = "";
+  if (err && err.stack) {
+    const lines = err.stack.split("\n");
+    if (lines.length > 1) {
+      firstStackLine = lines[1].trim(); // usually "at functionName (file:line:col)"
+    }
+  }
+  stats.addErrorMessage(
+    `ROOT-EXCEPTION#${err.message}${firstStackLine ? " | " + firstStackLine : ""}`,
+  );
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  debugLog("Unhandled Rejection:", err);
-  stats.addErrorMessage("ROOT#" + err.message);
+  debugLog(`Unhandled Rejection: ${reason}: ${promise}`);
+  stats.addErrorMessage(`ROOT-REJECTION#${reason}: ${promise}`);
   process.exit(1);
 });
 
