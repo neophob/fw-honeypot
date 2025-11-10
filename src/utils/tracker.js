@@ -9,16 +9,20 @@ const INACTIVITY_MS = process.env.INACTIVITY_MS
   ? parseInt(process.env.INACTIVITY_MS, 10)
   : 120_000;
 const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump.log");
-const LLM_LOG_FILE = path.join(process.env.LOG_DEST || "./", "dumpLlm.log");
+const LLM_LOG_FILE = path.join(process.env.LLM_DEST || "./", "dumpLlm.log");
 
 debugLog(`Dump file: ${LOG_FILE}, inactivity timeout: ${INACTIVITY_MS}ms`);
 const deduplicator = new HexDataDeduplicator(100, 0.8);
 const dataStore = new Map();
 const analyzer = new DumpAnalyzer({
   onError: (err) => debugLog(`LLM error: ${err.message}`),
-  onData: (llmAnswer) => {
-    debugLog(`LLM answer: ${llmAnswer}`);
-    fs.appendFileSync(LLM_LOG_FILE, llmAnswer.toString() + "\n\n", "utf8");
+  onData: (asciiDump, metadata, llmAnswer) => {
+    debugLog("%o, %o, %o", asciiDump, metadata, llmAnswer);
+    fs.appendFileSync(
+      LLM_LOG_FILE,
+      JSON.stringify({ asciiDump, metadata, llmAnswer }, null, 2) + "\n\n",
+      "utf8",
+    );
   },
 });
 

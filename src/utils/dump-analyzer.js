@@ -52,7 +52,7 @@ export class DumpAnalyzer {
 
     try {
       const result = await this.callOllama(asciiDump, metadata);
-      onData(result);
+      this.onData({ asciiDump, metadata, result });
     } catch (err) {
       this.onError(err);
     } finally {

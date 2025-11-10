@@ -2,3 +2,4 @@ node_modules/
 .idea/
 attacker.json
 dump.log
+dumpLlm.log
