@@ -11,7 +11,9 @@ const INACTIVITY_MS = process.env.INACTIVITY_MS
 const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump.log");
 const LLM_LOG_FILE = path.join(process.env.LLM_DEST || "./", "dumpLlm.log");
 
-debugLog(`Dump file: ${LOG_FILE}, LLM file: ${LLM_LOG_FILE}, inactivity timeout: ${INACTIVITY_MS}ms`);
+debugLog(
+  `Dump file: ${LOG_FILE}, LLM file: ${LLM_LOG_FILE}, inactivity timeout: ${INACTIVITY_MS}ms`,
+);
 const deduplicator = new HexDataDeduplicator(100, 0.8);
 const dataStore = new Map();
 const analyzer = new DumpAnalyzer({
