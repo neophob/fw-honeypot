@@ -42,7 +42,7 @@ export class HexDataDeduplicator {
     }
 
     // unique enough → add to buffer
-    debugLog("Data is unique enough, adding to buffer.");
+    debugLog("Data is unique!");
     this.buffer[this.index] = hex;
     this.index = (this.index + 1) % this.bufferSize;
     return true;

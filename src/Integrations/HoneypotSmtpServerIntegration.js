@@ -62,7 +62,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
         });
 
         stream.on("end", () => {
-          track(ip, SERVICE_NAME, data.toString());
+          track(ip, SERVICE_NAME, data.toString("hex"));
           debugLog(data.toString());
           callback();
         });

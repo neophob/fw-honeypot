@@ -76,7 +76,7 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
         stats.increaseCounter("TELNET_DATA");
         const input = data.toString().trim();
         debugLog(`Data ${ip}: ${input}`);
-        track(ip, SERVICE_NAME, input);
+        track(ip, SERVICE_NAME, data.toString("hex"));
         socket.write("Invalid login.\r\nlogin: ");
       });
 
