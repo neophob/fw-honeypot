@@ -3,13 +3,24 @@ import path from "path";
 import debug from "debug";
 const debugLog = debug("Tracker");
 import { HexDataDeduplicator } from "./hex-data-dedup.js";
+import { DumpAnalyzer } from "./dump-analyzer.js";
 
-const INACTIVITY_MS = 120_000; // 120 seconds
+const INACTIVITY_MS = process.env.INACTIVITY_MS
+  ? parseInt(process.env.INACTIVITY_MS, 10)
+  : 120_000;
 const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump.log");
+const LLM_LOG_FILE = path.join(process.env.LOG_DEST || "./", "dumpLlm.log");
 
-debugLog(`Dump file: ${LOG_FILE}`);
+debugLog(`Dump file: ${LOG_FILE}, inactivity timeout: ${INACTIVITY_MS}ms`);
 const deduplicator = new HexDataDeduplicator(100, 0.8);
 const dataStore = new Map();
+const analyzer = new DumpAnalyzer({
+  onError: (err) => debugLog(`LLM error: ${err.message}`),
+  onData: (llmAnswer) => {
+    debugLog(`LLM answer: ${llmAnswer}`);
+    fs.appendFileSync(LLM_LOG_FILE, llmAnswer.toString() + "\n\n", "utf8");
+  },
+});
 
 function makeKey(ip, serviceName) {
   return `${ip}|${serviceName}`;
@@ -46,6 +57,7 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
           entry.tracker.getTextSummary() + "\n\n",
           "utf8",
         );
+        analyzer.analyseDump(entry.tracker);
       }
     } catch (err) {
       debugLog(`Error flushing tracker for ${key}: ${err.message}`);
@@ -91,25 +103,26 @@ export class Tracker {
 
   //TODO limit rawData size
   getTextSummary() {
-    const str = extractStringsFromHex(this.rawData.join(""));
+    const str = Tracker.#extractStringsFromHex(this.rawData.join(""));
     return `## IP: ${this.ip}, service: ${this.serviceName}, size: ${this.getRawDataSize()}, time: ${new Date().toLocaleString()}\n${this.getHexString()}\n${str}`;
   }
-}
 
-function extractStringsFromHex(hex) {
-  const buf = Buffer.from(hex.replace(/[^0-9a-fA-F]/g, ""), "hex");
+  // Private static method
+  static #extractStringsFromHex(hex) {
+    const buf = Buffer.from(hex.replace(/[^0-9a-fA-F]/g, ""), "hex");
 
-  let result = "";
-  for (let i = 0; i < buf.length; i++) {
-    const b = buf[i];
-    // Check if printable ASCII
-    if (b >= 0x20 && b <= 0x7e) {
-      result += String.fromCharCode(b);
-    } else {
-      // Replace non-printable with space
-      result += " ";
+    let result = "";
+    for (let i = 0; i < buf.length; i++) {
+      const b = buf[i];
+      // Check if printable ASCII
+      if (b >= 0x20 && b <= 0x7e) {
+        result += String.fromCharCode(b);
+      } else {
+        // Replace non-printable with space
+        result += " ";
+      }
     }
+    // Collapse multiple spaces
+    return result.replace(/\s+/g, " ").trim();
   }
-  // Collapse multiple spaces
-  return result.replace(/\s+/g, " ").trim();
 }
