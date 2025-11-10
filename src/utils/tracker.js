@@ -2,11 +2,13 @@ import fs from "fs";
 import path from "path";
 import debug from "debug";
 const debugLog = debug("Tracker");
+import { HexDataDeduplicator } from "./hex-data-dedup.js";
 
 const INACTIVITY_MS = 120_000; // 120 seconds
 const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump.log");
 
 debugLog(`Dump file: ${LOG_FILE}`);
+const deduplicator = new HexDataDeduplicator(100, 0.75);
 
 // Map key: `${ip}|${serviceName}` -> { tracker, timeout }
 const dataStore = new Map();
@@ -36,12 +38,14 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
   entry.timeout = setTimeout(async () => {
     try {
       debugLog(`FLUSHIT ${entry.tracker.ip} ${entry.tracker.serviceName}`);
+      const isUnique = deduplicator.isUniqueData(entry.tracker.getHexString())
+        ? "(unique)"
+        : "(duplicate)";
       fs.appendFileSync(
         LOG_FILE,
-        entry.tracker.getTextSummary() + "\n\n",
+        isUnique + " > " + entry.tracker.getTextSummary() + "\n\n",
         "utf8",
       );
-      //TODO process it
     } catch (err) {
       debugLog(`Error flushing tracker for ${key}: ${err.message}`);
     } finally {
@@ -75,10 +79,14 @@ export class Tracker {
     }
   }
 
+  getHexString() {
+    return this.rawData.join(" ");
+  }
+
   //TODO limit rawData size
   getTextSummary() {
     const str = extractStringsFromHex(this.rawData.join(""));
-    return `>#### IP: ${this.ip}, service: ${this.serviceName}, time: ${new Date()}\n${this.rawData.join(" ")}\n${str}`;
+    return `>#### IP: ${this.ip}, service: ${this.serviceName}, time: ${new Date()}\n${this.getHexString()}\n${str}`;
   }
 }
 
