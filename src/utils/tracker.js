@@ -83,10 +83,15 @@ export class Tracker {
     return this.rawData.join(" ");
   }
 
+  getRawDataSize() {
+    const hexStr = this.rawData.join("");
+    return Math.floor(hexStr.length / 2);
+  }
+
   //TODO limit rawData size
   getTextSummary() {
     const str = extractStringsFromHex(this.rawData.join(""));
-    return `>#### IP: ${this.ip}, service: ${this.serviceName}, time: ${new Date()}\n${this.getHexString()}\n${str}`;
+    return `## IP: ${this.ip}, service: ${this.serviceName}, size: ${this.getRawDataSize()}, time: ${new Date().toLocaleString()}\n${this.getHexString()}\n${str}`;
   }
 }
 

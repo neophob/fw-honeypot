@@ -37,7 +37,7 @@ if (
     const base = resolve(dirname(fileURLToPath(import.meta.url)), ".");
     const config = readConfig(resolve(base, ".env.json"));
     await runServer({ config });
-    stats.setValue("start", new Date().toLocaleString());
+    stats.setValue("START", new Date().toLocaleString());
   } catch (err) {
     debugLog(`Fatal error during startup: ${err.message}`);
     process.exit(1);
