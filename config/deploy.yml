@@ -39,6 +39,7 @@ builder:
 env:
   DEBUG: "*"
   LOG_DEST: "/opt/honeypot/"
+  LLM_DEST: "/opt/honeypot/"
 
 # Persistent volumes for logs/malware captures
 volumes:
