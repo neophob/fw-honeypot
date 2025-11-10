@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eux  # <- exit on error, print each command, treat unset variables as error
-
+docker ps -a
 echo "Finding existing honeypot containers..."
 docker ps -a --filter "name=my-honeypot" --format "{{.ID}} {{.Names}}" || true
 
@@ -9,6 +9,6 @@ docker ps -a --filter "name=my-honeypot" -q | xargs -r docker stop -t 30
 
 echo "Removing old honeypot containers..."
 docker ps -a --filter "name=my-honeypot" -q | xargs -r docker rm -f
-
+hostname
 echo "Pre-deploy cleanup finished."
 exit 1

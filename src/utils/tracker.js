@@ -8,9 +8,7 @@ const INACTIVITY_MS = 120_000; // 120 seconds
 const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump.log");
 
 debugLog(`Dump file: ${LOG_FILE}`);
-const deduplicator = new HexDataDeduplicator(100, 0.75);
-
-// Map key: `${ip}|${serviceName}` -> { tracker, timeout }
+const deduplicator = new HexDataDeduplicator(100, 0.8);
 const dataStore = new Map();
 
 function makeKey(ip, serviceName) {
@@ -37,15 +35,18 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
   }
   entry.timeout = setTimeout(async () => {
     try {
-      debugLog(`FLUSHIT ${entry.tracker.ip} ${entry.tracker.serviceName}`);
-      const isUnique = deduplicator.isUniqueData(entry.tracker.getHexString())
-        ? "(unique)"
-        : "(duplicate)";
-      fs.appendFileSync(
-        LOG_FILE,
-        isUnique + " > " + entry.tracker.getTextSummary() + "\n\n",
-        "utf8",
+      const dataIsUnique = deduplicator.isUniqueData(
+        entry.tracker.getHexString(),
       );
+
+      if (dataIsUnique) {
+        debugLog(`FLUSHIT ${entry.tracker.ip} ${entry.tracker.serviceName}`);
+        fs.appendFileSync(
+          LOG_FILE,
+          entry.tracker.getTextSummary() + "\n\n",
+          "utf8",
+        );
+      }
     } catch (err) {
       debugLog(`Error flushing tracker for ${key}: ${err.message}`);
     } finally {
