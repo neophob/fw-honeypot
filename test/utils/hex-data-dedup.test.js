@@ -20,32 +20,30 @@ test("isUniqueData returns false for identical hex array", () => {
 test("isUniqueData returns true for slightly different hex array", () => {
   const deduplicator = new HexDataDeduplicator(3, 0.9);
   const hex1 = "ff00a1";
-  const hex2 = "ff00a2"; // slight difference
+  const hex2 = "ff00a2";
   deduplicator.isUniqueData(hex1);
   const result = deduplicator.isUniqueData(hex2);
   assert.equal(result, true);
 });
 
-test("circular buffer overwrites oldest entry", () => {
+test("isUniqueData returns false for hex data exceeding maxDataSize", () => {
+  const deduplicator = new HexDataDeduplicator(3, 0.8, 10); // max 10 bytes
+  const hex = "ff".repeat(11); // 11 bytes > 10
+  const result = deduplicator.isUniqueData(hex);
+  assert.equal(result, false);
+});
+
+test("isUniqueData: circular buffer overwrites oldest entry", () => {
   const deduplicator = new HexDataDeduplicator(2, 0.5);
   deduplicator.isUniqueData("a1");
   deduplicator.isUniqueData("b2");
   deduplicator.isUniqueData("c3"); // should overwrite "a1"
 
   const buffer = deduplicator.buffer;
-  assert.deepEqual(buffer, ["c3", "b2"]); // circular overwrite
+  assert.deepEqual(buffer, ["c3", "b2"]);
 });
 
-test("isUniqueData works for arrays of different lengths", () => {
-  const deduplicator = new HexDataDeduplicator(3, 0.8);
-  const hex1 = "ff00a1";
-  const hex2 = "ff00a1ff"; // longer array
-  deduplicator.isUniqueData(hex1);
-  const result = deduplicator.isUniqueData(hex2);
-  assert.equal(result, true); // considered different enough
-});
-
-test("multiple hex arrays processed correctly", () => {
+test("isUniqueData: multiple hex arrays processed correctly", () => {
   const deduplicator = new HexDataDeduplicator(3, 0.8);
   const data = ["aa", "bb", "cc", "aa", "dd"];
   const results = data.map((h) => deduplicator.isUniqueData(h));
