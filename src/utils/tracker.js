@@ -33,6 +33,7 @@ const analyzer = new DumpAnalyzer({
     );
   },
 });
+analyzer.test();
 
 function makeKey(ip, serviceName) {
   return `${ip}|${serviceName}`;

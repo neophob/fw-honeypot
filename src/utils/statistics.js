@@ -38,6 +38,7 @@ class Statistics {
   }
 
   addErrorMessage(msg) {
+    debugLog("error added %s", msg);
     this.lasterrors[this.errorSlot] = msg;
     this.errorSlot = (this.errorSlot + 1) % this.nrErrorsToTrack;
   }

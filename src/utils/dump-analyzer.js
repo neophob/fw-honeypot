@@ -6,7 +6,7 @@ const debugLog = debug("DumpAnalyzer");
 
 export class DumpAnalyzer {
   constructor({
-    host = "ollama",
+    host = "my-honeypot-ollama",
     port = 11434,
     model = "llama3:latest",
     onError = console.error,
@@ -67,11 +67,15 @@ export class DumpAnalyzer {
     }
   }
 
-  callOllama(asciiDump, metadata) {
+  test() {
+    return this.callOllama(null, null, "say hi");
+  }
+
+  callOllama(asciiDump, metadata, prompt = null) {
     return new Promise((resolve) => {
       const postData = JSON.stringify({
         model: this.model,
-        prompt: this.buildPrompt(asciiDump, metadata),
+        prompt: prompt ?? this.buildPrompt(asciiDump, metadata),
         stream: false,
       });
 

@@ -4,7 +4,6 @@
 
 Make sure SSH connections work to the target, passwordless (`ssh-copy-id -i ~/.ssh/id_ed25519.pub -p PORT ubuntu@KAMALHOST`)
 
-
 ```
 # docker run --rm -it \
           -v $(pwd):/app \
