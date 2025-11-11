@@ -72,6 +72,7 @@ export class DumpAnalyzer {
   }
 
   callOllama(asciiDump, metadata, prompt = null) {
+    const shouldParseAnswer = prompt === null;
     return new Promise((resolve) => {
       const postData = JSON.stringify({
         model: this.model,
@@ -106,7 +107,9 @@ export class DumpAnalyzer {
 
             let parsedResponse = null;
             try {
-              parsedResponse = JSON.parse(json.response);
+              parsedResponse = shouldParseAnswer
+                ? JSON.parse(json.response)
+                : json.response;
             } catch (innerErr) {
               this.onError(
                 new Error("Failed to parse json.response: " + innerErr.message),

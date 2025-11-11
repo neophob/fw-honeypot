@@ -34,10 +34,10 @@ const analyzer = new DumpAnalyzer({
   },
 });
 
-setInterval(() => {
-  debugLog("IntervalLLLLLLM");
+setTimeout(() => {
+  debugLog("Test LLM");
   analyzer.test();
-}, 8000);
+}, 5000);
 
 function makeKey(ip, serviceName) {
   return `${ip}|${serviceName}`;
