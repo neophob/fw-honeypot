@@ -1,8 +1,10 @@
 #!/bin/sh
 set -eux  # <- exit on error, print each command, treat unset variables as error
 
+env | sort
+
 ssh ubuntu@51.195.102.237 -p 22222 '
-hostname
+
 echo "Finding existing honeypot containers..."
 docker ps -a --filter "name=my-honeypot" --format "{{.ID}} {{.Names}}" || true
 
