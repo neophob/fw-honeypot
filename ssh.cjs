@@ -49,7 +49,13 @@ new Server({
     if (method === 'keyboard-interactive') {
       ctx.prompt([{ prompt: 'Password: ', echo: false }], (answers) => {
         console.log(` -> keyboard-interactive answers for ${ctx.username}: ${answers}`);
-        ctx.accept();
+        setTimeout(() => {
+          if (Math.random() < 0.2) {
+            ctx.accept();
+          } else {
+            ctx.reject();
+          }
+        }, 500 + Math.random() * 3000);
       });
       return;
     }
