@@ -8,7 +8,7 @@ import { DumpAnalyzer } from "./dump-analyzer.js";
 
 const INACTIVITY_MS = process.env.INACTIVITY_MS
   ? parseInt(process.env.INACTIVITY_MS, 10)
-  : 60_000; //TODO INCREASE
+  : 120_000;
 //TODO fix naming
 const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump-raw.log");
 const LLM_LOG_FILE = path.join(process.env.LLM_DEST || "./", "dump-llm.log");
@@ -23,12 +23,12 @@ const analyzer = new DumpAnalyzer({
     stats.increaseCounter("FAILED_LLM_ANALYZE");
     debugLog(`LLM error: %O`, err);
   },
-  onData: ({ asciiDump, metadata, llmAnswer }) => {
+  onData: ({ asciiDump, metadata, llmResult }) => {
     stats.increaseCounter("ANALYZED_LLM_DUMPS");
-    debugLog("%o, %o, %o", asciiDump, metadata, llmAnswer);
+    debugLog("ANALYZED_LLM_DUMPS: %o, %o, %o", asciiDump, metadata, llmResult);
     fs.appendFileSync(
       LLM_LOG_FILE,
-      JSON.stringify({ asciiDump, metadata, llmAnswer }, null, 2) + "\n\n",
+      JSON.stringify({ asciiDump, metadata, llmResult }, null, 2) + "\n\n",
       "utf8",
     );
   },
@@ -59,7 +59,7 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
   entry.tracker.addData(data);
 
   if (entry.timeout) {
-    stats.increaseCounter("TIMEOUT_CLEARED");
+    stats.increaseCounter("TRACKER_TIMEOUT_CLEARED");
     clearTimeout(entry.timeout);
   }
   entry.timeout = setTimeout(async () => {
@@ -83,7 +83,7 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
       dataStore.delete(key);
     }
   }, timeoutMs);
-  stats.increaseCounter("TIMEOUT_CREATED");
+  stats.increaseCounter("TRACKER_TIMEOUT_CREATED");
 }
 
 export function clean() {
@@ -110,6 +110,7 @@ export class Tracker {
   addData(data) {
     if (data && !this.rawData.includes(data)) {
       this.rawData.push(data);
+      stats.increaseCounter("TRACKER_DATA_PUSHED");
     } else {
       stats.increaseCounter("TRACKER_DATA_IGNORED_DUPLICATE");
     }

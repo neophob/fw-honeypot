@@ -23,7 +23,7 @@ export class DumpAnalyzer {
 
   // Fire-and-forget facade accepting a Tracker instance
   analyseDump(tracker) {
-    debugLog(`analyseDump called for ${tracker.ip} ${tracker.serviceName}`);
+    debugLog(`called for ${tracker.ip} ${tracker.serviceName}`);
     if (!tracker || typeof tracker.getTextSummary !== "function") {
       this.onError(
         new Error(
@@ -46,7 +46,6 @@ export class DumpAnalyzer {
   }
 
   async processQueue() {
-    debugLog(`processQueue: Queue length: ${this.queue.length}`);
     if (this.isProcessing || this.queue.length === 0) {
       return;
     }
@@ -55,11 +54,14 @@ export class DumpAnalyzer {
     const { asciiDump, metadata } = this.queue.shift();
 
     try {
-      const result = await this.callOllama(asciiDump, metadata);
-      this.onData({ asciiDump, metadata, result });
-      stats.increaseCounter("QUEUE_PROCESSED");
+      stats.increaseCounter("LLM_QUERY_STARTED");
+      debugLog(`processQueue: Queue length: ${this.queue.length}`);
+      const llmResult = await this.callOllama(asciiDump, metadata);
+      console
+      this.onData({ asciiDump, metadata, llmResult });
+      stats.increaseCounter("LLM_QUERY_PROCESSED");
     } catch (err) {
-      stats.increaseCounter("QUEUE_ERROR");
+      stats.increaseCounter("LLM_QUERY_ERROR");
       this.onError(err);
     } finally {
       this.isProcessing = false;
@@ -119,7 +121,7 @@ export class DumpAnalyzer {
                 new Error("Failed to parse json.response: " + innerErr.message),
               );
             }
-
+            debugLog('Resolve response');
             resolve(parsedResponse);
           } catch (err) {
             debugLog(`Ollama ERROR data: ${data}`);
