@@ -48,6 +48,7 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
   let entry = dataStore.get(key);
   if (!entry) {
     debugLog(`create new tracker for ${ip} ${serviceName}`);
+    stats.increaseCounter("TRACKER_CREATED");
     const tracker = new Tracker(ip, serviceName);
     entry = {
       tracker,
@@ -58,7 +59,7 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
   entry.tracker.addData(data);
 
   if (entry.timeout) {
-    debugLog(`Clear timeout`);
+    stats.increaseCounter("TIMEOUT_CLEARED");
     clearTimeout(entry.timeout);
   }
   entry.timeout = setTimeout(async () => {
@@ -82,6 +83,7 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
       dataStore.delete(key);
     }
   }, timeoutMs);
+  stats.increaseCounter("TIMEOUT_CREATED");
 }
 
 export function clean() {
@@ -108,6 +110,8 @@ export class Tracker {
   addData(data) {
     if (data && !this.rawData.includes(data)) {
       this.rawData.push(data);
+    } else {
+      stats.increaseCounter("TRACKER_DATA_IGNORED_DUPLICATE");
     }
   }
 
