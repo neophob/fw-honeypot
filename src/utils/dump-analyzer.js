@@ -56,7 +56,7 @@ export class DumpAnalyzer {
 
     try {
       stats.increaseCounter("LLM_QUERY_STARTED");
-      debugLog(`processQueue: Queue length: ${this.queue.length}`);
+      stats.setValue("LLM_QUERY_SIZE", this.queue.length);
       const llmResult = await this.callOllama(asciiDump, metadata);
       this.onData({ asciiDump, metadata, llmResult });
       stats.increaseCounter("LLM_QUERY_PROCESSED");
@@ -119,6 +119,7 @@ export class DumpAnalyzer {
                 ? JSON.parse(json.response)
                 : json.response;
             } catch (innerErr) {
+              debugLog("INVALID_JSON: %s", json.response);
               this.onError(
                 new Error("Failed to parse json.response: " + innerErr.message),
               );

@@ -1,5 +1,4 @@
 #!/bin/sh
-set -eux
 
 # shut down container, avoid network troubles
-kamal app stop || true
+kamal app stop

@@ -67,3 +67,4 @@ aliases:
   stats: server exec "curl -s http://172.18.0.3:8080 | jq"
   fr: server exec cat data/dump-raw.log
   fl: server exec cat data/dump-llm.log
+  fc: server exec rm -f data/dump-*.log
