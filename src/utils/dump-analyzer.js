@@ -1,5 +1,7 @@
 import http from "http";
 import debug from "debug";
+import { stats } from "./statistics.js";
+
 const debugLog = debug("DumpAnalyzer");
 
 export class DumpAnalyzer {
@@ -45,7 +47,9 @@ export class DumpAnalyzer {
 
   async processQueue() {
     debugLog(`processQueue: Queue length: ${this.queue.length}`);
-    if (this.isProcessing || this.queue.length === 0) return;
+    if (this.isProcessing || this.queue.length === 0) {
+      return;
+    }
 
     this.isProcessing = true;
     const { asciiDump, metadata } = this.queue.shift();
@@ -53,7 +57,9 @@ export class DumpAnalyzer {
     try {
       const result = await this.callOllama(asciiDump, metadata);
       this.onData({ asciiDump, metadata, result });
+      stats.increaseCounter("QUEUE_PROCESSED");
     } catch (err) {
+      stats.increaseCounter("QUEUE_ERROR");
       this.onError(err);
     } finally {
       this.isProcessing = false;

@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import debug from "debug";
 const debugLog = debug("Tracker");
-import { stats } from "../utils/statistics.js";
+import { stats } from "./statistics.js";
 import { HexDataDeduplicator } from "./hex-data-dedup.js";
 import { DumpAnalyzer } from "./dump-analyzer.js";
 
