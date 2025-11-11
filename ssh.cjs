@@ -43,16 +43,10 @@ new Server({
     // Log credentials depending on method
     if (method === 'password') {
       console.log(` -> password supplied: "${ctx.password}"`);
-      // Accept so attacker enters a session; you may choose to reject sometimes.
-      return ctx.accept();
+      return Math.random() < 0.8 ? ctx.accept() : ctx.reject();
     }
 
     if (method === 'keyboard-interactive') {
-      // keyboard-interactive prompts -> log answers
-      /*ctx.prompt('Password: ', (answers) => {
-        console.log(` -> keyboard-interactive answers for ${ctx.username}: ${JSON.stringify(answers)}`);
-        return ctx.accept();
-      });*/
       ctx.prompt([{ prompt: 'Password: ', echo: false }], (answers) => {
         console.log(` -> keyboard-interactive answers for ${ctx.username}: ${answers}`);
         ctx.accept();
@@ -112,7 +106,7 @@ new Server({
 
             // Ctrl-C (ETX, 0x03) -> cancel current line, show ^C and new prompt
             if (ch === "\x03") {
-              stream.write("^C\n");
+              stream.write("^C\r\n");
               cmdBuf = "";
               writePrompt(stream);
               i++;
