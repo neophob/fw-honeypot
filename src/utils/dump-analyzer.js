@@ -6,7 +6,7 @@ const debugLog = debug("DumpAnalyzer");
 
 export class DumpAnalyzer {
   constructor({
-    host = "localhost",
+    host = "ollama",
     port = 11434,
     model = "llama3:latest",
     onError = console.error,

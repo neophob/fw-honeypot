@@ -37,7 +37,6 @@ registry:
 # Builder setup (optional, mostly for local Docker builds)
 builder:
   arch: amd64
-  # args: {}   # build args if needed
 
 # Inject environment variables into the container (optional)
 env:
@@ -56,9 +55,10 @@ accessories:
     port: 11434
     volumes:
       # map the hosts ollama director into the container's path /root/.ollama
-      - ollama:/root/.ollama
+      - "ollama:/root/.ollama"
     host: 51.195.102.237
 
 # Aliases to make SSHing/logging easier (optional)
 aliases:
-  shell: honeypot exec --interactive --reuse "bash"
+  appshell: app exec --interactive --reuse -i "bash"
+  ollamashell: accessory exec ollama --reuse -i "bash"
