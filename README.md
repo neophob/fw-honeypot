@@ -9,6 +9,7 @@ Install the kamal cli or use this fish shell script:
 ```
 # cat ~/.config/fish/functions/kamal.fish
 function kamal
+    ssh-add
     docker run -it --rm \
         -v "$PWD:/workdir" \
         -v "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" \

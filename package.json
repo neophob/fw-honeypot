@@ -33,6 +33,7 @@
     "debug": "^4.4.3",
     "geoip-country": "^5.0.202511072342",
     "ip-regex": "^5.0.0",
-    "smtp-server": "^3.16.1"
+    "smtp-server": "^3.16.1",
+    "ssh2": "^1.17.0"
   }
 }
