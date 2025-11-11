@@ -7,6 +7,8 @@ class Statistics {
     this.nrErrorsToTrack = options?.errorEntriesToTrack ?? 16;
     this.lasterrors = {};
     this.errorSlot = 0;
+    this.timeMeasurements = new Map();
+    this.maxTimeMeasurements = 32;
   }
 
   setValue(key, value) {
@@ -24,13 +26,42 @@ class Statistics {
     this.cache.set(key, value);
   }
 
+  addTimeMeasurement(key, value) {
+    let measurements = this.timeMeasurements.get(key);
+    if (!measurements) {
+      measurements = [];
+    }
+    if (measurements.length >= this.maxTimeMeasurements) {
+      measurements.shift();
+    }
+    measurements.push(value);
+    this.timeMeasurements.set(key, measurements);
+  }
+
+  calculateAverageTime(key) {
+    const measurements = this.timeMeasurements.get(key);
+    if (!measurements || measurements.length === 0) {
+      return 0;
+    }
+    const total = measurements.reduce((sum, value) => sum + value, 0);
+    return Number(total / measurements.length).toFixed();
+  }
+
   getStatistic() {
     const result = {};
-    const allKeys = Array.from(this.cache.keys());
+    const allKeys = [...this.cache.keys()];
     allKeys.sort().forEach((key) => {
       result[key] = this.cache.get(key);
     });
-    return result;
+    for (const [key] of this.timeMeasurements) {
+      result[`${key}_AVG_DURATION_MS`] = this.calculateAverageTime(key);
+    }
+    const sortedKeys = Object.keys(result).sort();
+    const sortedResult = {};
+    for (const key of sortedKeys) {
+      sortedResult[key] = result[key];
+    }
+    return sortedResult;
   }
 
   getLastErrors() {
@@ -46,6 +77,7 @@ class Statistics {
   clearStatistics() {
     this.cache.clear();
     this.lasterrors = {};
+    this.timeMeasurements.clear();
   }
 }
 

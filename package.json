@@ -6,7 +6,7 @@
     "dev": "DEBUG='*' nodemon server.js",
     "format:write": "npx -y prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
     "start": "DEBUG='*' INACTIVITY_MS=2000 HOST_OLLAMA='127.0.0.1' node server.js",
-    "test": "node --test",
+    "test": "HOST_OLLAMA='127.0.0.1' node --test",
     "docker:build": "docker build -t fw-honeypot .",
     "registry:login": "echo $GITHUB_TOKEN | docker login ghcr.io -u neophob --password-stdin",
     "docker:tag": "docker tag fw-honeypot:latest ghcr.io/neophob/fw-honeypot:latest",

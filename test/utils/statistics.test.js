@@ -32,6 +32,22 @@ test("Statistics: clears statistics properly", () => {
   assert.deepEqual(stats.getLastErrors(), {});
 });
 
+test("Statistics: time measurements", () => {
+  stats.clearStatistics();
+  stats.addTimeMeasurement("query1", 100);
+  stats.addTimeMeasurement("query1", 200);
+  stats.addTimeMeasurement("query1", 300);
+  assert.equal(stats.calculateAverageTime("query1"), 200);
+});
+
+test("Statistics: summary", () => {
+  stats.clearStatistics();
+  stats.setValue("requests", 42);
+  stats.addTimeMeasurement("requests", 120);
+  stats.addTimeMeasurement("requests", 240);
+  assert.deepEqual(stats.getStatistic(), { requests: 42, requests_avg_time: 180 });
+});
+
 test("Statistics: supports custom errorEntriesToTrack", () => {
   stats.clearStatistics();
   for (let i = 0; i < 20; i++) {

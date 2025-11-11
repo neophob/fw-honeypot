@@ -103,9 +103,7 @@ export class DumpAnalyzer {
 
             if (json.total_duration) {
               const queryDurationMs = json.total_duration / 1000000;
-              debugLog(
-                `Ollama queryDurationMs: ${Number(queryDurationMs).toFixed()} ms`,
-              );
+              stats.addTimeMeasurement("LLM_QUERY", queryDurationMs);
             }
 
             // If the response contains an error key, treat it as an error

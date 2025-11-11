@@ -35,11 +35,6 @@ const analyzer = new DumpAnalyzer({
   },
 });
 
-setTimeout(async () => {
-  debugLog("Test LLM");
-  await analyzer.test();
-}, 5000);
-
 function makeKey(ip, serviceName) {
   return `${ip}|${serviceName}`;
 }
@@ -144,7 +139,6 @@ export class Tracker {
     return this.getRawDataSize() > this.maxDataSize;
   }
 
-  //TODO limit rawData size
   getTextSummary() {
     const time = new Date().toLocaleString();
     const cutoff = this.isCutOff();
