@@ -18,7 +18,7 @@ export class HexDataDeduplicator {
   }
 
   // Public method
-  isUniqueData(hex) {
+  isUniqueData(hex, optionalDebugDetails = "") {
     const newBytes = this.#hexToBytes(hex);
 
     for (const oldHex of this.buffer) {
@@ -27,9 +27,9 @@ export class HexDataDeduplicator {
       const similarity = this.#arraySimilarity(newBytes, oldBytes);
       if (similarity >= this.similarityThreshold) {
         debugLog(
-          `Data too similar (similarity=${similarity.toFixed(2)}) to existing entry, rejecting.`,
+          `Data too similar (similarity=${similarity.toFixed(2)}) to existing entry ${optionalDebugDetails}.`,
         );
-        return false; // too similar
+        return false;
       }
     }
 

@@ -21,6 +21,7 @@ const dataStore = new Map();
 const analyzer = new DumpAnalyzer({
   onError: (err) => {
     stats.increaseCounter("FAILED_LLM_ANALYZE");
+    stats.addErrorMessage(`LLM-ERROR#${err.message}`);
     debugLog(`LLM error: %O`, err);
   },
   onData: ({ asciiDump, metadata, llmResult }) => {
@@ -67,6 +68,7 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
     try {
       const dataIsUnique = deduplicator.isUniqueData(
         entry.tracker.getHexString(),
+        entry.tracker.serviceName,
       );
 
       if (dataIsUnique) {

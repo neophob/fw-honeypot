@@ -14,11 +14,11 @@ set -eux
 
 echo "$KAMAL_PERFORMER deployed $KAMAL_VERSION to $KAMAL_HOSTS in $KAMAL_RUNTIME seconds"
 
-#this should only run when it does not exist
-#kamal accessory boot ollama
-kamal accessory start ollama
-kamal accessory exec ollama --reuse -v "ollama pull llama3:latest"
-kamal accessory exec ollama --reuse -v "ollama list"
-
 # Fix permissions on the host-mounted volume
 kamal server exec "sudo chmod -R 777 /home/ubuntu/data"
+
+#this should only run when it does not exist
+#kamal accessory boot ollama
+kamal accessory start ollama || true
+kamal accessory exec ollama --reuse -v "ollama pull llama3:latest"
+kamal accessory exec ollama --reuse -v "ollama list"

@@ -38,7 +38,7 @@ export class DumpAnalyzer {
       sourceIP: tracker.ip,
       service: tracker.serviceName,
       dumpSize: tracker.getRawDataSize(),
-      cutoff: tracker.isCutOff()
+      cutoff: tracker.isCutOff(),
     };
 
     const task = { asciiDump, metadata };
@@ -58,7 +58,6 @@ export class DumpAnalyzer {
       stats.increaseCounter("LLM_QUERY_STARTED");
       debugLog(`processQueue: Queue length: ${this.queue.length}`);
       const llmResult = await this.callOllama(asciiDump, metadata);
-      console
       this.onData({ asciiDump, metadata, llmResult });
       stats.increaseCounter("LLM_QUERY_PROCESSED");
     } catch (err) {
@@ -103,7 +102,9 @@ export class DumpAnalyzer {
 
             if (json.total_duration) {
               const queryDurationMs = json.total_duration / 1000000;
-              debugLog(`Ollama queryDurationMs: ${Number(queryDurationMs).toFixed()} ms`);
+              debugLog(
+                `Ollama queryDurationMs: ${Number(queryDurationMs).toFixed()} ms`,
+              );
             }
 
             // If the response contains an error key, treat it as an error
@@ -122,7 +123,7 @@ export class DumpAnalyzer {
                 new Error("Failed to parse json.response: " + innerErr.message),
               );
             }
-            debugLog('Resolve response');
+            debugLog("Resolve response");
             resolve(parsedResponse);
           } catch (err) {
             debugLog(`Ollama ERROR data: ${data}`);
