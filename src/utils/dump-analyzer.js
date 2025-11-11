@@ -74,6 +74,18 @@ export class DumpAnalyzer {
     return this.callOllama(null, null, "say hi");
   }
 
+  failsaveJsonParse(data) {
+    try {
+      return JSON.parse(data);
+    } catch (error) {
+      stats.increaseCounter("LLM_INVALID_JSON_DETECTED");
+    }
+
+    // Escape lone backslashes (Windows paths etc.)
+    const jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+    return JSON5.parse(jsonStr);
+  }
+
   callOllama(asciiDump, metadata, prompt = null) {
     const shouldParseAnswer = prompt === null;
     return new Promise((resolve) => {
@@ -115,7 +127,7 @@ export class DumpAnalyzer {
             let parsedResponse = null;
             try {
               parsedResponse = shouldParseAnswer
-                ? JSON.parse(json.response)
+                ? this.failsaveJsonParse(json.response)
                 : json.response;
             } catch (innerErr) {
               debugLog("INVALID_JSON: %s", json.response);
