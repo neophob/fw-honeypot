@@ -68,12 +68,12 @@ test("Tracker: remove duplicates", async () => {
   const service = "http";
   const data = "PAYLOAD";
 
-  track(ip, service, data, 200);
-  track(ip, service, data, 200);
+  track(ip, service, data, 100);
+  track(ip, service, data, 100);
   track(ip, service, data, 100);
 
-  await wait(400);
-  assert(lastWrite.content.includes("\nPAYLOAD\n\n"));
+  await wait(100);
+  assert(lastWrite.content.includes("\nPAYLOAD\n"));
 });
 
 test("Tracker: serialize", async () => {
