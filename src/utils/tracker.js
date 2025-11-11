@@ -1,11 +1,12 @@
 import fs from "fs";
 import path from "path";
 import debug from "debug";
-const debugLog = debug("Tracker");
+import geoip from "geoip-country";
 import { stats } from "./statistics.js";
 import { HexDataDeduplicator } from "./hex-data-dedup.js";
 import { DumpAnalyzer } from "./dump-analyzer.js";
 
+const debugLog = debug("Tracker");
 const INACTIVITY_MS = process.env.INACTIVITY_MS
   ? parseInt(process.env.INACTIVITY_MS, 10)
   : 120_000;
@@ -98,10 +99,15 @@ export function clean() {
 
 export class Tracker {
   constructor(ip, serviceName, maxDataSize = 3 * 1024) {
-    this.ip = ip;
+    this.ip = ip.toString();
     this.serviceName = serviceName;
     this.rawData = [];
     this.maxDataSize = maxDataSize;
+    this.country = "Unknown";
+    const geo = geoip.lookup(this.ip);
+    if (geo?.country) {
+      this.country = geo.country;
+    }
   }
 
   //TODO rename to addHexStringData
@@ -144,7 +150,7 @@ export class Tracker {
     const cutoff = this.isCutOff();
     const hexStr = this.getHexString();
     const printableStr = this.getPrintableString();
-    return `## IP: ${this.ip}, service: ${this.serviceName}, size: ${this.getRawDataSize()}, time: ${time}, cutoff: ${cutoff}\n${hexStr}\n${printableStr}`;
+    return `## IP: ${this.ip}, country: ${this.country}, service: ${this.serviceName}, size: ${this.getRawDataSize()}, time: ${time}, cutoff: ${cutoff}\n${hexStr}\n${printableStr}`;
   }
 
   // Private static method

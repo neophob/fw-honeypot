@@ -91,7 +91,7 @@ test("Tracker: serialize", async () => {
 
   assert.equal(
     result,
-    "## IP: 1.2.3.4, service: SERVICE, size: 3, time: FAKE_DATE, cutoff: false\nabcd 123\n",
+    "## IP: 1.2.3.4, country: AU, service: SERVICE, size: 3, time: FAKE_DATE, cutoff: false\nabcd 123\n",
   );
 });
 
@@ -108,7 +108,7 @@ test("Tracker: serialize cutoff", async () => {
 
   assert.equal(
     result,
-    "## IP: 1.2.3.4, service: SERVICE, size: 4, time: FAKE_DATE, cutoff: true\nabcd\n",
+    "## IP: 1.2.3.4, country: AU, service: SERVICE, size: 4, time: FAKE_DATE, cutoff: true\nabcd\n",
   );
 });
 

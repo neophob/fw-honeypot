@@ -39,6 +39,7 @@ export class DumpAnalyzer {
       service: tracker.serviceName,
       dumpSize: tracker.getRawDataSize(),
       cutoff: tracker.isCutOff(),
+      country: tracker.country,
     };
 
     const task = { asciiDump, metadata };

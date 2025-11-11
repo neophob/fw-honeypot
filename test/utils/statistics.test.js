@@ -37,7 +37,7 @@ test("Statistics: time measurements", () => {
   stats.addTimeMeasurement("query1", 100);
   stats.addTimeMeasurement("query1", 200);
   stats.addTimeMeasurement("query1", 300);
-  assert.equal(stats.calculateAverageTime("query1"), '200');
+  assert.equal(stats.calculateAverageTime("query1"), "200");
 });
 
 test("Statistics: summary", () => {
@@ -47,7 +47,7 @@ test("Statistics: summary", () => {
   stats.addTimeMeasurement("requests", 240);
   assert.deepEqual(stats.getStatistic(), {
     requests: 42,
-    requests_AVG_DURATION_MS: '180',
+    requests_AVG_DURATION_MS: "180",
   });
 });
 
