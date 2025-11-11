@@ -98,6 +98,8 @@ export class DumpAnalyzer {
           try {
             debugLog(`Ollama response data: ${data}`);
             const json = JSON.parse(data);
+            const queryDurationMs = data.total_duration / 1000000;
+            debugLog(`Ollama queryDurationMs: ${queryDurationMs}`);
 
             // If the response contains an error key, treat it as an error
             if (json.error) {
