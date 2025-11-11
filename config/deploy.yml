@@ -63,4 +63,5 @@ aliases:
   log: app logs -f
   appshell: app exec --interactive --reuse -i "bash"
   ollamashell: accessory exec ollama --reuse -i "bash"
+  servershell: server exec --interactive "bash"
   stats: server exec "curl -s http://172.18.0.3:8080 | jq"

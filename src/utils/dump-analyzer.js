@@ -6,7 +6,7 @@ const debugLog = debug("DumpAnalyzer");
 
 export class DumpAnalyzer {
   constructor({
-    host = "my-honeypot-ollama",
+    host = process.env.HOST_OLLAMA ?? "my-honeypot-ollama",
     port = 11434,
     model = "llama3:latest",
     onError = console.error,
@@ -96,10 +96,12 @@ export class DumpAnalyzer {
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
           try {
-            debugLog(`Ollama response data: ${data}`);
             const json = JSON.parse(data);
-            const queryDurationMs = data.total_duration / 1000000;
-            debugLog(`Ollama queryDurationMs: ${queryDurationMs}`);
+
+            if (json.total_duration) {
+              const queryDurationMs = json.total_duration / 1000000;
+              debugLog(`Ollama queryDurationMs: ${Number(queryDurationMs).toFixed()} ms`);
+            }
 
             // If the response contains an error key, treat it as an error
             if (json.error) {
@@ -120,6 +122,7 @@ export class DumpAnalyzer {
 
             resolve(parsedResponse);
           } catch (err) {
+            debugLog(`Ollama ERROR data: ${data}`);
             this.onError(
               new Error("Failed to parse Ollama response: " + err.message),
             );

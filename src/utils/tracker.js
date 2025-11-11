@@ -8,7 +8,7 @@ import { DumpAnalyzer } from "./dump-analyzer.js";
 
 const INACTIVITY_MS = process.env.INACTIVITY_MS
   ? parseInt(process.env.INACTIVITY_MS, 10)
-  : 120_000;
+  : 60_000; //TODO INCREASE
 //TODO fix naming
 const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump-raw.log");
 const LLM_LOG_FILE = path.join(process.env.LLM_DEST || "./", "dump-llm.log");
@@ -23,7 +23,7 @@ const analyzer = new DumpAnalyzer({
     stats.increaseCounter("FAILED_LLM_ANALYZE");
     debugLog(`LLM error: %O`, err);
   },
-  onData: (asciiDump, metadata, llmAnswer) => {
+  onData: ({ asciiDump, metadata, llmAnswer }) => {
     stats.increaseCounter("ANALYZED_LLM_DUMPS");
     debugLog("%o, %o, %o", asciiDump, metadata, llmAnswer);
     fs.appendFileSync(
