@@ -1,4 +1,8 @@
 import ipRegex from "ip-regex";
+import debug from "debug";
+import { stats } from "./statistics.js";
+
+const debugLog = debug("IpAddress");
 
 export class IpAddress {
   #ipV4;
@@ -31,13 +35,17 @@ export class IpAddress {
 export const splitIpAddress = (remoteAddress) => {
   const matchesIpV4 = remoteAddress.match(ipRegex.v4());
   if (matchesIpV4) {
+    stats.increaseCounter("IPV4_ADDRESS_DETECTED");
     return new IpAddress(matchesIpV4[0]);
   }
 
   const matchesIpV6 = remoteAddress.match(ipRegex.v6());
   if (matchesIpV6) {
+    stats.increaseCounter("IPV6_ADDRESS_DETECTED");
     return new IpAddress(null, matchesIpV6[0]);
   }
 
+  stats.increaseCounter("NO_IP_ADDRESS_DETECTED");
+  debugLog("No IP address found %s", remoteAddress);
   return null;
 };

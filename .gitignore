@@ -1,6 +1,4 @@
 node_modules/
 .idea/
 attacker.json
-dump.log
-dumpLlm.log
-dump-llm.log
+dump*.log

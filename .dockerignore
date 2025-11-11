@@ -3,3 +3,5 @@ npm-debug.log
 Dockerfile
 .git
 .gitignore
+dump*.log
+.nvmrc

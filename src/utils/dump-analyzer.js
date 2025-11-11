@@ -38,6 +38,7 @@ export class DumpAnalyzer {
       sourceIP: tracker.ip,
       service: tracker.serviceName,
       dumpSize: tracker.getRawDataSize(),
+      cutoff: tracker.isProcessing(),
     };
 
     const task = { asciiDump, metadata };

@@ -65,3 +65,5 @@ aliases:
   ollamashell: accessory exec ollama --reuse -i "bash"
   servershell: server exec --interactive "bash"
   stats: server exec "curl -s http://172.18.0.3:8080 | jq"
+  fr: server exec cat data/dump-raw.log
+  fl: server exec cat data/dump-llm.log
