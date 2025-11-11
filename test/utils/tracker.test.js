@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
-import { track, clean } from "../../src/utils/tracker.js";
+import { track, clean, Tracker } from "../../src/utils/tracker.js";
 
 // --- Mock fs.appendFileSync ---
 const originalAppend = fs.appendFileSync;
@@ -76,6 +76,42 @@ test("Tracker: remove duplicates", async () => {
   assert(lastWrite.content.includes("\nPAYLOAD\n\n"));
 });
 
+test("Tracker: serialize", async () => {
+  const t = new Tracker("1.2.3.4", "SERVICE");
+  const originalToLocaleString = Date.prototype.toLocaleString;
+  Date.prototype.toLocaleString = () => "FAKE_DATE";
+
+  t.addData("abcd");
+  t.addData("abcd");
+  t.addData("123");
+  t.addData();
+
+  const result = t.getTextSummary();
+  Date.prototype.toLocaleString = originalToLocaleString;
+
+  assert.equal(
+    result,
+    "## IP: 1.2.3.4, service: SERVICE, size: 3, time: FAKE_DATE, cutoff: false\nabcd 123\n",
+  );
+});
+
+test("Tracker: serialize cutoff", async () => {
+  const t = new Tracker("1.2.3.4", "SERVICE", 2);
+  const originalToLocaleString = Date.prototype.toLocaleString;
+  Date.prototype.toLocaleString = () => "FAKE_DATE";
+
+  t.addData("abcd0000");
+  t.addData();
+
+  const result = t.getTextSummary();
+  Date.prototype.toLocaleString = originalToLocaleString;
+
+  assert.equal(
+    result,
+    "## IP: 1.2.3.4, service: SERVICE, size: 4, time: FAKE_DATE, cutoff: true\nabcd\n",
+  );
+});
+
 test("Tracker: clean cancels timers", async () => {
   lastWrite = null;
 
@@ -85,7 +121,6 @@ test("Tracker: clean cancels timers", async () => {
   assert(lastWrite === null, "Flush should not happen after clean");
 });
 
-// --- Cleanup ---
 test("Tracker: cleanup mock", () => {
   clean();
   fs.appendFileSync = originalAppend;

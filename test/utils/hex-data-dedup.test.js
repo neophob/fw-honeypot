@@ -26,13 +26,6 @@ test("isUniqueData returns true for slightly different hex array", () => {
   assert.equal(result, true);
 });
 
-test("isUniqueData returns false for hex data exceeding maxDataSize", () => {
-  const deduplicator = new HexDataDeduplicator(3, 0.8, 10); // max 10 bytes
-  const hex = "ff".repeat(11); // 11 bytes > 10
-  const result = deduplicator.isUniqueData(hex);
-  assert.equal(result, false);
-});
-
 test("isUniqueData: circular buffer overwrites oldest entry", () => {
   const deduplicator = new HexDataDeduplicator(2, 0.5);
   deduplicator.isUniqueData("a1");

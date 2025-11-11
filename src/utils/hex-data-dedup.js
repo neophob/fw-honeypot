@@ -21,14 +21,6 @@ export class HexDataDeduplicator {
   isUniqueData(hex) {
     const newBytes = this.#hexToBytes(hex);
 
-    // Fail if size exceeds maxDataSize
-    if (newBytes.length > this.maxDataSize) {
-      debugLog(
-        `Data size ${newBytes.length} exceeds max of ${this.maxDataSize}.`,
-      );
-      return false;
-    }
-
     for (const oldHex of this.buffer) {
       if (!oldHex) continue;
       const oldBytes = this.#hexToBytes(oldHex);
