@@ -19,10 +19,5 @@ kamal accessory start ollama
 kamal accessory exec ollama --reuse -v "ollama pull llama3:latest"
 kamal accessory exec ollama --reuse -v "ollama list"
 
-# make sure the data directory is writeable by our app
-# Dynamically get the UID/GID of 'runner' inside the container
-UID=$(kamal app exec --reuse "id -u runner")
-GID=$(kamal app exec --reuse"id -g runner")
-
 # Fix permissions on the host-mounted volume
-kamal server exec honeypot "sudo chown -R $UID:$GID /opt/honeypot && sudo chmod -R 755 /opt/honeypot"
+kamal server exec honeypot "sudo chmod -R 777 /opt/honeypot"
