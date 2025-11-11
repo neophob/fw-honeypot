@@ -63,6 +63,7 @@ export function track(ip, serviceName, data, timeoutMs = INACTIVITY_MS) {
     clearTimeout(entry.timeout);
   }
   entry.timeout = setTimeout(async () => {
+    stats.increaseCounter("TRACKER_TIMEOUT_REACHED");
     try {
       const dataIsUnique = deduplicator.isUniqueData(
         entry.tracker.getHexString(),
