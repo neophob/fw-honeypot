@@ -53,11 +53,10 @@ new Server({
         console.log(` -> keyboard-interactive answers for ${ctx.username}: ${JSON.stringify(answers)}`);
         return ctx.accept();
       });*/
-      ctx.prompt("Password: ", false, (answers) => {
-        console.log(` -> keyboard-interactive answers for ${ctx.username}: ${JSON.stringify(answers)}`);
+      ctx.prompt([{ prompt: 'Password: ', echo: false }], (answers) => {
+        console.log(` -> keyboard-interactive answers for ${ctx.username}: ${answers}`);
         ctx.accept();
       });
-
       return;
     }
 
@@ -101,8 +100,14 @@ new Server({
         let cmdBuf = "";
         stream.on("data", (chunk) => {
           const s = chunk.toString("utf8");
-
-          for (let i = 0; i < s.length; i++) {
+          let i = 0;
+          while (i < s.length) {
+            // Detect arrow up escape sequence: \x1b[A
+            if (s[i] === "\x1b" && s[i+1] === "[" && s[i+2] === "A") {
+              // Ignore arrow up
+              i += 3;
+              continue;
+            }
             const ch = s[i];
 
             // Ctrl-C (ETX, 0x03) -> cancel current line, show ^C and new prompt
@@ -110,6 +115,7 @@ new Server({
               stream.write("^C\n");
               cmdBuf = "";
               writePrompt(stream);
+              i++;
               continue;
             }
 
@@ -127,6 +133,7 @@ new Server({
                 // Move cursor back, erase char, move cursor back (common terminal sequence)
                 stream.write("\b \b");
               }
+              i++;
               continue;
             }
 
@@ -138,12 +145,14 @@ new Server({
               handleFakeCommand(cmd, stream, clientAddr);
               cmdBuf = "";
               if (!stream.writableEnded) writePrompt(stream);
+              i++;
               continue;
             }
 
             // Printable character: append to buffer and echo it
             cmdBuf += ch;
             stream.write(ch);
+            i++;
           }
         });
 
@@ -175,6 +184,7 @@ new Server({
     console.log('Client end');
   }).on('error', (err) => {
     console.log('ERROR: ' + err.message);
+    console.error(err.stack);
   });
 }).listen(0, function() {
   console.log('Listening on port ' + this.address().port);
@@ -194,31 +204,31 @@ function handleFakeCommand(cmd, stream, clientAddr) {
 
   const lower = cmd.toLowerCase();
   if (lower === "whoami") {
-    stream.write("ubuntu\n");
+    stream.write("ubuntu\r\n");
     return;
   }
   if (lower === "uname -a") {
-    stream.write("Linux honeypot 5.4.0-126-generic #143-Ubuntu SMP x86_64 GNU/Linux\n");
+    stream.write("Linux vps-429da322 6.14.0-35-generic #35-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 10 01:02:31 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\r\n");
     return;
   }
   if (lower.startsWith("ls")) {
     // show fake files
-    stream.write("README.txt  logs  captures\n");
+    stream.write("README.txt  logs  captures\r\n");
     return;
   }
   if (lower.startsWith("cat ")) {
-    stream.write("This is a simulated file. Do not run attacker payloads here.\n");
+    stream.write("Permission denied\r\n");
     return;
   }
   if (lower === "exit" || lower === "logout") {
-    stream.write("logout\n");
+    stream.write("logout\r\n");
     stream.end();
     return;
   }
 
   // Unknown commands: pretend /bin/sh returns "command not found"
   setTimeout(() => {
-    stream.write(`${cmd}: command not found\n`);
+    stream.write(`${cmd}: command not found\r\n`);
   }, 300 + Math.floor(Math.random() * 800)); // small random delay
 }
 
