@@ -23,6 +23,10 @@ ssh:
   user: ubuntu           # your SSH user
   port: 22222            # your SSH port
 
+logging:
+  options:
+    max-size: 64m
+
 # Optional: registry credentials if using a private registry
 registry:
   server: ghcr.io
@@ -44,6 +48,16 @@ env:
 # Persistent volumes for logs/malware captures
 volumes:
   - "./data:/opt/honeypot"
+
+accessories:
+  ollama:
+    # the docker image needs to be in the registry and is not automatically build!
+    image: ollama/ollama
+    port: 11434
+    volumes:
+      # map the hosts ollama director into the container's path /root/.ollama
+      - ollama:/root/.ollama
+    host: 51.195.102.237
 
 # Aliases to make SSHing/logging easier (optional)
 aliases:

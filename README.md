@@ -2,6 +2,9 @@
 
 ## Deploy
 
+Make sure SSH connections work to the target, passwordless (`ssh-copy-id -i ~/.ssh/id_ed25519.pub -p PORT ubuntu@KAMALHOST`)
+
+
 ```
 # docker run --rm -it \
           -v $(pwd):/app \
@@ -12,6 +15,10 @@
           kamal-cli:latest \
           kamal deploy
 ```
+
+or use
+
+`alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" -e KAMAL_REGISTRY_PASSWORD -e SSH_AUTH_SOCK="/run/host-services/ssh-auth.sock" -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/basecamp/kamal:latest'` as described here: https://kamal-deploy.org/docs/installation/dockerized/
 
 ## TODO
 
