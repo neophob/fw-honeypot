@@ -1,19 +1,5 @@
 #!/bin/sh
 set -eux  # <- exit on error, print each command, treat unset variables as error
 
+# shut down container, avoid network troubles
 kamal app stop
-#env | sort
-
-#ssh ubuntu@$KAMAL_HOSTS -p 22222 '
-
-#echo "Finding existing honeypot containers..."
-#docker ps -a --filter "name=my-honeypot" --format "{{.ID}} {{.Names}}" || true
-
-#echo "Stopping old honeypot containers..."
-#docker ps -a --filter "name=my-honeypot" -q | xargs -r docker stop -t 30
-
-#echo "Removing old honeypot containers..."
-#docker ps -a --filter "name=my-honeypot" -q | xargs -r docker rm -f
-
-#echo "Pre-deploy cleanup finished."
-#'

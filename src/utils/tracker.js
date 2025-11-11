@@ -9,8 +9,9 @@ import { DumpAnalyzer } from "./dump-analyzer.js";
 const INACTIVITY_MS = process.env.INACTIVITY_MS
   ? parseInt(process.env.INACTIVITY_MS, 10)
   : 120_000;
-const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump.log");
-const LLM_LOG_FILE = path.join(process.env.LLM_DEST || "./", "dumpLlm.log");
+//TODO fix naming
+const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump-raw.log");
+const LLM_LOG_FILE = path.join(process.env.LLM_DEST || "./", "dump-llm.log");
 
 debugLog(
   `Dump file: ${LOG_FILE}, LLM file: ${LLM_LOG_FILE}, inactivity timeout: ${INACTIVITY_MS}ms`,
