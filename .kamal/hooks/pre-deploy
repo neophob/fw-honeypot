@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eux  # <- exit on error, print each command, treat unset variables as error
+set -eux
 
 # shut down container, avoid network troubles
-kamal app remove
+kamal app stop

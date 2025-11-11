@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eux
 
 # A sample post-deploy hook
 #
@@ -20,4 +21,4 @@ kamal accessory exec ollama --reuse -v "ollama pull llama3:latest"
 kamal accessory exec ollama --reuse -v "ollama list"
 
 # Fix permissions on the host-mounted volume
-kamal server exec "sudo chmod -R 777 /opt/honeypot"
+kamal server exec "sudo chmod -R 777 /home/ubuntu/data"
