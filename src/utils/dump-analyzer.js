@@ -43,6 +43,7 @@ export class DumpAnalyzer {
 
     const task = { asciiDump, metadata };
     this.queue.push(task);
+    stats.setValue("LLM_QUERY_SIZE", this.queue.length);
     this.processQueue();
   }
 
