@@ -34,9 +34,9 @@ const analyzer = new DumpAnalyzer({
   },
 });
 
-setTimeout(() => {
+setTimeout(async () => {
   debugLog("Test LLM");
-  analyzer.test();
+  await analyzer.test();
 }, 5000);
 
 function makeKey(ip, serviceName) {
