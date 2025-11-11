@@ -3,3 +3,4 @@ node_modules/
 attacker.json
 dump.log
 dumpLlm.log
+dump-llm.log
