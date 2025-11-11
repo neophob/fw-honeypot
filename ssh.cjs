@@ -8,9 +8,9 @@
 'use strict';
 
 const { generateKeyPairSync } = require('crypto');
-
 const { Server } = require('ssh2');
 
+const hostname = "vps-" + Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, "0");
 const { privateKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
   privateKeyEncoding: {
@@ -43,14 +43,14 @@ new Server({
     // Log credentials depending on method
     if (method === 'password') {
       console.log(` -> password supplied: "${ctx.password}"`);
-      return Math.random() < 0.8 ? ctx.accept() : ctx.reject();
+      return Math.random() < 0.6 ? ctx.accept() : ctx.reject();
     }
 
     if (method === 'keyboard-interactive') {
       ctx.prompt([{ prompt: 'Password: ', echo: false }], (answers) => {
         console.log(` -> keyboard-interactive answers for ${ctx.username}: ${answers}`);
         setTimeout(() => {
-          if (Math.random() < 0.2) {
+          if (Math.random() < 0.4) {
             ctx.accept();
           } else {
             ctx.reject();
@@ -190,8 +190,7 @@ new Server({
 });
 
 function writePrompt(stream) {
-  // show bash-like prompt
-  stream.write("ubuntu@vps-429da322:~$ ");
+  stream.write(`ubuntu@${hostname}:~$ `);
 }
 
 function handleFakeCommand(cmd, stream, clientAddr) {
@@ -208,8 +207,23 @@ function handleFakeCommand(cmd, stream, clientAddr) {
     writePrompt(stream);
     return;
   }
+  if (lower === "hostname") {
+    stream.write(`${hostname}\r\n`);
+    writePrompt(stream);
+    return;
+  }
+  if (lower === "uname") {
+    stream.write(`Linux\r\n`);
+    writePrompt(stream);
+    return;
+  }
   if (lower === "uname -a") {
-    stream.write("Linux vps-429da322 6.14.0-35-generic #35-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 10 01:02:31 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\r\n");
+    stream.write(`Linux ${hostname} 6.14.0-35-generic #35-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 10 01:02:31 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\r\n`);
+    writePrompt(stream);
+    return;
+  }
+  if (lower === "ls /") {
+    stream.write("bin  boot  dev  etc  home  lib  lib64  lost+found  media  mnt  opt  proc  root  run  sbin  snap  srv  sys  tmp  usr  var\r\n");
     writePrompt(stream);
     return;
   }
@@ -243,7 +257,7 @@ function handleFakeCommand(cmd, stream, clientAddr) {
   setTimeout(() => {
     stream.write(`${cmd}: command not found\r\n`);
     writePrompt(stream);
-  }, 300 + Math.floor(Math.random() * 800)); // small random delay
+  }, 200 + Math.floor(Math.random() * 750)); // small random delay
 }
 
 function emulateExec(command, stream, clientAddr) {
