@@ -144,7 +144,6 @@ new Server({
               console.log(`CMD from ${clientAddr}: ${cmd}`);
               handleFakeCommand(cmd, stream, clientAddr);
               cmdBuf = "";
-              if (!stream.writableEnded) writePrompt(stream);
               i++;
               continue;
             }
@@ -199,25 +198,39 @@ function handleFakeCommand(cmd, stream, clientAddr) {
   // small set of believable responses
   if (!cmd) {
     // empty enter
+    writePrompt(stream);
     return;
   }
 
   const lower = cmd.toLowerCase();
   if (lower === "whoami") {
     stream.write("ubuntu\r\n");
+    writePrompt(stream);
     return;
   }
   if (lower === "uname -a") {
     stream.write("Linux vps-429da322 6.14.0-35-generic #35-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 10 01:02:31 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\r\n");
+    writePrompt(stream);
     return;
   }
   if (lower.startsWith("ls")) {
-    // show fake files
     stream.write("README.txt  logs  captures\r\n");
+    writePrompt(stream);
     return;
   }
   if (lower.startsWith("cat ")) {
     stream.write("Permission denied\r\n");
+    writePrompt(stream);
+    return;
+  }
+  if (lower.startsWith("sudo ")) {
+    stream.write("Permission denied\r\n");
+    writePrompt(stream);
+    return;
+  }
+  if (lower.startsWith("su ")) {
+    stream.write("Permission denied\r\n");
+    writePrompt(stream);
     return;
   }
   if (lower === "exit" || lower === "logout") {
@@ -229,6 +242,7 @@ function handleFakeCommand(cmd, stream, clientAddr) {
   // Unknown commands: pretend /bin/sh returns "command not found"
   setTimeout(() => {
     stream.write(`${cmd}: command not found\r\n`);
+    writePrompt(stream);
   }, 300 + Math.floor(Math.random() * 800)); // small random delay
 }
 
