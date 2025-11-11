@@ -12,7 +12,7 @@ set -eux
 # KAMAL_DESTINATION (if set)
 # KAMAL_RUNTIME
 
-echo "$KAMAL_PERFORMER deployed $KAMAL_VERSION to $KAMAL_DESTINATION ($KAMAL_HOSTS) in $KAMAL_RUNTIME seconds"
+echo "$KAMAL_PERFORMER deployed $KAMAL_VERSION to $KAMAL_HOSTS in $KAMAL_RUNTIME seconds"
 
 #this should only run when it does not exist
 #kamal accessory boot ollama
