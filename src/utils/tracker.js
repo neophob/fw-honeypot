@@ -21,7 +21,7 @@ const dataStore = new Map();
 const analyzer = new DumpAnalyzer({
   onError: (err) => {
     stats.increaseCounter("FAILED_LLM_ANALYZE");
-    debugLog(`LLM error: ${err.message}`);
+    debugLog(`LLM error: %O`, err);
   },
   onData: (asciiDump, metadata, llmAnswer) => {
     stats.increaseCounter("ANALYZED_LLM_DUMPS");
@@ -33,7 +33,11 @@ const analyzer = new DumpAnalyzer({
     );
   },
 });
-analyzer.test();
+
+setInterval(() => {
+  debugLog("IntervalLLLLLLM");
+  analyzer.test();
+}, 8000);
 
 function makeKey(ip, serviceName) {
   return `${ip}|${serviceName}`;
