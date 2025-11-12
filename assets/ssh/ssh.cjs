@@ -136,6 +136,12 @@ new Server({
               return;
             }
 
+            // **TAB (0x09)** — ignore it completely
+            if (ch === "\t") {
+              i++;
+              continue;
+            }
+
             // Backspace / DEL
             if (ch === "\x7f" || ch === "\b") {
               if (cmdBuf.length > 0) {
