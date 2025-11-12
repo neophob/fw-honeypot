@@ -5,6 +5,7 @@
 //      terminal types of client connections
 //   2. Install `blessed`: `npm install blessed`
 //   3. Create a server host key in this same directory and name it `host.key`
+// ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null user@127.0.0.1 -p 123
 'use strict';
 
 const { generateKeyPairSync } = require('crypto');
@@ -83,6 +84,16 @@ new Server({
       session.on("pty", (acceptPty, rejectPty, info) => {
         console.log("PTY requested from", clientAddr, "info=", JSON.stringify(info));
         acceptPty && acceptPty();
+      });
+
+      session.on("window-change", (accept, reject, info) => {
+        console.log("Window-Change requested from", clientAddr, "info=", JSON.stringify(info));
+        accept && accept();
+      });
+
+      session.on("env", (accept, reject, info) => {
+        console.log("env requested from", clientAddr, "info=", JSON.stringify(info));
+        accept && accept();
       });
 
       session.on("shell", (acceptShell) => {
