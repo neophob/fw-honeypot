@@ -54,11 +54,17 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
       disabledCommands: ["AUTH"],
 
       onData(stream, session, callback) {
+        const ip = session.remoteAddress;
         let data = "";
         stats.increaseCounter("SMTP_DATA");
 
         stream.on("data", (chunk) => {
           data += chunk.toString();
+        });
+
+        stream.on("error", (err) => {
+          stats.addErrorMessage(`SMTP-ERROR#${err?.message}`);
+          debugLog("SMTP-ERROR: %s", err?.message);
         });
 
         stream.on("end", () => {
