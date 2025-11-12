@@ -65,17 +65,18 @@ new Server({
       // Public key auth: log key details
       try {
         const pk = ctx.key && ctx.key.data ? ctx.key.data.toString('base64') : '<no-key-data>';
-        console.log(` -> publickey algo=${ctx.key?.algo} blob(base64)=${pk} signature_present=${!!ctx.signature}`);
+        console.log(` -> publickey algo=${ctx.key?.algo} blob(base64)=${pk} signature=${ctx.signature?.toString('hex')}`);
       } catch (e) {
         console.log(' -> publickey logging error', e);
       }
       // accept so attackers get a shell (if you want realism you can reject if signature missing)
+
       return ctx.accept();
     }
 
     // fallback: accept but log
     console.log(` -> unknown auth method "${method}" — accepting for logging`);
-    return ctx.accept();
+    return ctx.reject();
   }).on('ready', () => {
     console.log("Client authenticated (ready):", clientAddr);
 
@@ -136,8 +137,8 @@ new Server({
               return;
             }
 
-            // **TAB (0x09)** — ignore it completely
-            if (ch === "\t") {
+            // TAB (0x09) or Ctrl-L — ignore it completely
+            if (ch === "\t" || ch === "\x0c") {
               i++;
               continue;
             }
