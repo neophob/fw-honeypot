@@ -1,15 +1,31 @@
+import { generateKeyPairSync } from "crypto";
+import ssh2 from "ssh2";
 import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
-import net from "net";
-import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
 import { track } from "../utils/tracker.js";
+
+import { handleServerAuth } from "./ssh/server-auth.js";
+import { handleClientSessionSession } from "./ssh/client-session.js";
+
 import debug from "debug";
 
-const SSH_BANNER = "SSH-2.0-OpenSSH_8.6\r\n";
+const { Server } = ssh2;
 const SERVICE_NAME = "SSH";
 const debugLog = debug(SERVICE_NAME);
+
+const { privateKey } = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  privateKeyEncoding: {
+    type: "pkcs1",
+    format: "pem",
+  },
+  publicKeyEncoding: {
+    type: "spki",
+    format: "pem",
+  },
+});
 
 export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
   #server;
@@ -24,6 +40,9 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
   constructor(config) {
     super();
     this.config = mergeConfigs(this.config, config);
+    this.serverConfig = {
+      hostKeys: [privateKey],
+    };
   }
 
   /**
@@ -48,7 +67,105 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
     this.config = config;
     debugLog("Config: <%o>", this.config);
 
-    const server = net.createServer((socket) => {
+    const server = new Server(this.serverConfig, (client) => {
+      const clientAddr =
+        client._sock.remoteAddress + ":" + client._sock.remotePort;
+      let authAttempts = 0;
+
+      client
+        .on("authentication", (ctx) => {
+          authAttempts += 1;
+          const clientAddr =
+            client._sock.remoteAddress + ":" + client._sock.remotePort;
+          handleServerAuth(ctx, clientAddr, authAttempts);
+        })
+        .on("ready", () => {
+          debugLog("Client authenticated (ready):", clientAddr);
+
+          client.on("session", (accept, reject) => {
+            const session = accept();
+
+            session.on("pty", (acceptPty, rejectPty, info) => {
+              debugLog(
+                "PTY requested from",
+                clientAddr,
+                "info=",
+                JSON.stringify(info),
+              );
+              acceptPty && acceptPty();
+            });
+
+            session.on("window-change", (acceptW, reject, info) => {
+              debugLog(
+                "Window-Change requested from",
+                clientAddr,
+                "info=",
+                JSON.stringify(info),
+              );
+              acceptW && acceptW();
+            });
+
+            session.on("env", (acceptE, reject, info) => {
+              debugLog(
+                "env requested from",
+                clientAddr,
+                "info=",
+                JSON.stringify(info),
+              );
+              acceptE && acceptE();
+            });
+
+            session.on("shell", (acceptShell) => {
+              handleClientSessionSession(acceptShell, clientAddr);
+            });
+
+            session.on("exec", (acceptExec, rejectExec, info) => {
+              const stream = acceptExec();
+              debugLog(
+                `Exec request from ${clientAddr} command=${info.command}`,
+              );
+              // Emulate execution with canned outputs, delay to look realistic
+              emulateExec(info.command, stream, clientAddr);
+            });
+
+            session.on("sftp", (acceptSftp, rejectSftp) => {
+              debugLog(
+                `SFTP request from ${clientAddr} - rejecting (not implemented)`,
+              );
+              // reject to appear like server without SFTP or limited SFTP
+              rejectSftp && rejectSftp();
+            });
+          });
+        })
+        .on("close", () => {
+          debugLog("Client disconnected");
+        })
+        .on("end", () => {
+          debugLog("Client end");
+        })
+        .on("error", (err) => {
+          debugLog("ERROR: " + err.message);
+          stats.addErrorMessage("SSH_SERVER_ERROR#" + err.message);
+        });
+    });
+    this.#server = server;
+  }
+
+  listen() {
+    this.#server
+      .listen(this.#config.port, () => {
+        debugLog(
+          `[SSH] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
+        );
+      })
+      .on("error", (err) => {
+        debugLog(`Error: ${err.message}`);
+        stats.addErrorMessage(`SSH_SERVER_ERROR#${err.message}`);
+      });
+  }
+}
+
+/*    const server = net.createServer((socket) => {
       let handshakeDone = false;
       const ip = splitIpAddress(socket.remoteAddress);
 
@@ -104,20 +221,4 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
         socket.destroy();
         debugLog(`Connection from ${ip} has been closed.`);
       }, 5000);
-    });
-
-    this.#server = server;
-  }
-
-  listen() {
-    this.#server
-      .listen(this.#config.port, this.#config.host, () => {
-        debugLog(
-          `[SSH] Honeypot is listening on port ${this.#config.host}:${this.#config.port}`,
-        );
-      })
-      .on("error", (err) => {
-        debugLog(`Error: ${err.message}`);
-      });
-  }
-}
+    });*/

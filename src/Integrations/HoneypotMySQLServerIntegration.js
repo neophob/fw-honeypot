@@ -120,6 +120,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
       })
       .on("error", (err) => {
         debugLog(`Error: ${err.message}`);
+        stats.addErrorMessage(`MYSQL_SERVER_ERROR#${err.message}`);
       });
   }
 }

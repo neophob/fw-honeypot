@@ -98,6 +98,7 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
       })
       .on("error", (err) => {
         debugLog(`Error: ${err.message}`);
+        stats.addErrorMessage(`TELNET_SERVER_ERROR#${err.message}`);
       });
   }
 }

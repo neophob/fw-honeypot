@@ -114,7 +114,7 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
       })
       .on("error", (err) => {
         debugLog(`Error: ${err.message}`);
-        stats.addErrorMessage("SMB Server#" + err.message);
+        stats.addErrorMessage(`SMB_SERVER_ERROR#${err.message}`);
       });
   }
 }
