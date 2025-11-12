@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "DEBUG='*' nodemon server.js",
-    "format:write": "npx -y prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
+    "format:write": "npx -y prettier --write '**/*.{js,cjs,jsx,ts,tsx,json,css,scss,md}'",
     "start": "DEBUG='*' INACTIVITY_MS=2000 HOST_OLLAMA='127.0.0.1' node server.js",
     "test": "HOST_OLLAMA='127.0.0.1' node --test",
     "docker:build": "docker build -t fw-honeypot .",
