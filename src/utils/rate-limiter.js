@@ -23,8 +23,6 @@ export class RateLimiter {
     debugLog(`created maxConnectionsPerHour: ${maxConnectionsPerHour}`);
   }
 
-  // --- PRIVATE METHODS -------------------------------------------------
-
   #cleanup() {
     const now = Date.now();
 
@@ -68,7 +66,8 @@ export class RateLimiter {
     return entry.count;
   }
 
-  checkIfBlocked(ip) {
+  checkIfBlocked(_ip) {
+    const ip = _ip.toString();
     this.#cleanup();
 
     if (this.#isCurrentlyBlocked(ip)) {

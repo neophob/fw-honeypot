@@ -78,7 +78,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
       const isHostBlocked = rateLimiter.checkIfBlocked(ip);
       let authAttempts = 0;
       const sessionInfo = [];
-      debugLog("Client authenticated (ready): %O", ip);
+      debugLog(`Client authenticated (ready): ${ip.toString()}`);
       sessionInfo.push(`Client:${JSON.stringify(info.header)}`);
 
       if (isHostBlocked) {
