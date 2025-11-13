@@ -49,8 +49,8 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
 
     const server = new SMTPServer({
       name: "mail.local",
-      banner: "welcome",
-      logger: false,
+      banner: "mail.local ESMTP Postfix",
+      logger: true,
       disabledCommands: ["AUTH"],
 
       onData(stream, session, callback) {
@@ -69,7 +69,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
         });
 
         stream.on("end", () => {
-          track(ip, SERVICE_NAME, data.toString("hex"));
+          track(ip, SERVICE_NAME, Buffer.from(data).toString("hex"));
           debugLog(data.toString());
           callback();
         });

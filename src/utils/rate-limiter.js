@@ -57,7 +57,6 @@ export class RateLimiter {
     const entry = this.connectionTracker.get(ip);
 
     if (!entry || now - entry.firstSeen > this.windowMs) {
-      debugLog(`IP ${ip} added to counter`);
       this.connectionTracker.set(ip, { count: 1, firstSeen: now });
       return 1;
     }
