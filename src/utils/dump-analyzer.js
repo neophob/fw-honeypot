@@ -42,6 +42,8 @@ export class DumpAnalyzer {
       country: tracker.country,
     };
 
+    stats.increaseCounter("CONNECT_FROM_COUNTRY_" + tracker.country);
+
     const task = { asciiDump, metadata };
     this.queue.push(task);
     stats.setValue("LLM_QUERY_SIZE", this.queue.length);
