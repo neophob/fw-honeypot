@@ -3,7 +3,13 @@ import assert from "node:assert/strict";
 import { handleServerAuth } from "../../../src/Integrations/ssh/server-auth.js";
 
 // Mock the ctx object and the necessary methods
-const mockCtx = (method, username = "testUser", password = "testPass", key = null, signature = null) => {
+const mockCtx = (
+  method,
+  username = "testUser",
+  password = "testPass",
+  key = null,
+  signature = null,
+) => {
   let resolveFn;
   const promise = new Promise((resolve) => {
     resolveFn = resolve;
@@ -30,12 +36,14 @@ const mockCtx = (method, username = "testUser", password = "testPass", key = nul
   };
 };
 
-
 test("handleServerAuth: Rejects 'none' method and provides allowed methods", () => {
   const ctx = mockCtx("none");
   const result = handleServerAuth(ctx, "127.0.0.1", 1);
 
-  assert.deepEqual(result, ctx.reject(["password", "publickey", "keyboard-interactive"]));
+  assert.deepEqual(
+    result,
+    ctx.reject(["password", "publickey", "keyboard-interactive"]),
+  );
 });
 
 test("handleServerAuth: Accepts 'password' method with 60% chance", () => {

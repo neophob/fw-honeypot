@@ -1,17 +1,21 @@
 import debug from "debug";
 import { FakeCommandHandler } from "./fake-commands.js";
+import { stats } from "../../utils/statistics.js";
+import { track } from "../../utils/tracker.js";
+
+const SERVICE_NAME = "SSH";
 const debugLog = debug("SSHClientSession");
 
-export function handleClientSessionSession(acceptShell, clientAddr) {
+export function handleClientSessionSession(acceptShell, ip) {
   const stream = acceptShell();
   const fakeCommandHandler = new FakeCommandHandler(stream);
-  debugLog("Shell started for", clientAddr);
+  debugLog("Shell started for", ip);
 
   // show motd + prompt
   stream.write("Ubuntu 20.04.6 LTS\r\n");
   stream.write("Welcome to Ubuntu\r\n\n");
   stream.write(
-    "Last login: " + new Date().toString() + " from " + clientAddr + "\r\n",
+    "Last login: " + new Date().toString() + " from " + ip + "\r\n",
   );
 
   fakeCommandHandler.writePrompt();
@@ -20,6 +24,9 @@ export function handleClientSessionSession(acceptShell, clientAddr) {
   let cmdBuf = "";
   stream.on("data", (chunk) => {
     const s = chunk.toString("utf8");
+
+    track(ip, SERVICE_NAME, Buffer.from(s, "utf8").toString("hex"));
+
     let i = 0;
     while (i < s.length) {
       // Detect arrow up escape sequence: \x1b[A
@@ -67,7 +74,7 @@ export function handleClientSessionSession(acceptShell, clientAddr) {
       if (ch === "\r" || ch === "\n") {
         stream.write("\r\n"); // echo newline
         const cmd = cmdBuf.trim();
-        debugLog(`CMD from ${clientAddr}: ${cmd}`);
+        debugLog(`CMD from ${ip}: ${cmd}`);
         fakeCommandHandler.handle(cmd);
         cmdBuf = "";
         i++;
@@ -82,10 +89,11 @@ export function handleClientSessionSession(acceptShell, clientAddr) {
   });
 
   stream.on("close", () => {
-    debugLog("Shell closed for", clientAddr);
+    debugLog("Shell closed for", ip);
   });
 
   stream.on("error", (err) => {
     debugLog("Shell err", err.message);
+    stats.addErrorMessage("SSHClientSessionError#" + err.message);
   });
 }

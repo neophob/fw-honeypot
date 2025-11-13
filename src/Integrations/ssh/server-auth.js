@@ -2,7 +2,7 @@ import { stats } from "../../utils/statistics.js";
 import debug from "debug";
 const debugLog = debug("SSHServerAuth");
 
-export function handleServerAuth(ctx, clientAddr, authAttempts) {
+export function handleServerAuth(ctx, ip, authAttempts) {
   const method = ctx.method;
   debugLog(
     `AUTH attempt #${authAttempts} method=${method} username=${ctx.username}`,

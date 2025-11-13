@@ -1,6 +1,7 @@
 import { generateKeyPairSync } from "crypto";
 import ssh2 from "ssh2";
 import { AbstractHoneypotIntegration } from "./AbstractHoneypotIntegration.js";
+import { splitIpAddress } from "../utils/ip-utils.js";
 import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
@@ -70,53 +71,53 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
     const server = new Server(this.serverConfig, (client) => {
       const clientAddr =
         client._sock.remoteAddress + ":" + client._sock.remotePort;
+      const ip = splitIpAddress(client._sock.remoteAddress);
       let authAttempts = 0;
+      const sessionInfo = [];
+      debugLog("Client authenticated (ready): %O", ip);
 
       client
         .on("authentication", (ctx) => {
           authAttempts += 1;
-          const clientAddr =
-            client._sock.remoteAddress + ":" + client._sock.remotePort;
-          handleServerAuth(ctx, clientAddr, authAttempts);
+          handleServerAuth(ctx, ip, authAttempts);
         })
         .on("ready", () => {
-          debugLog("Client authenticated (ready):", clientAddr);
+          debugLog("Client authenticated (ready) %s:", clientAddr);
 
           client.on("session", (accept, reject) => {
             const session = accept();
 
             session.on("pty", (acceptPty, rejectPty, info) => {
               debugLog(
-                "PTY requested from",
-                clientAddr,
-                "info=",
-                JSON.stringify(info),
+                `PTY requested from ${clientAddr} info=${JSON.stringify(info)}`,
               );
+              sessionInfo.push(`PTY:${JSON.stringify(info)}`);
               acceptPty && acceptPty();
             });
 
             session.on("window-change", (acceptW, reject, info) => {
               debugLog(
-                "Window-Change requested from",
-                clientAddr,
-                "info=",
-                JSON.stringify(info),
+                `Window-Change requested from ${clientAddr} info=${JSON.stringify(info)}`,
               );
+              sessionInfo.push(`Window Change:${JSON.stringify(info)}`);
               acceptW && acceptW();
             });
 
             session.on("env", (acceptE, reject, info) => {
               debugLog(
-                "env requested from",
-                clientAddr,
-                "info=",
-                JSON.stringify(info),
+                `env requested from ${clientAddr} info=${JSON.stringify(info)}`,
               );
+              sessionInfo.push(`ENV:${info.key}=${info.val}`);
               acceptE && acceptE();
             });
 
             session.on("shell", (acceptShell) => {
-              handleClientSessionSession(acceptShell, clientAddr);
+              const hexData = Buffer.from(
+                sessionInfo.join(", "),
+                "utf8",
+              ).toString("hex");
+              track(ip, SERVICE_NAME, hexData);
+              handleClientSessionSession(acceptShell, ip);
             });
 
             session.on("exec", (acceptExec, rejectExec, info) => {
@@ -125,6 +126,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
                 `Exec request from ${clientAddr} command=${info.command}`,
               );
               // Emulate execution with canned outputs, delay to look realistic
+              // //TODO track
               emulateExec(info.command, stream, clientAddr);
             });
 
