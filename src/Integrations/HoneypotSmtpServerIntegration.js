@@ -57,6 +57,7 @@ export class HoneypotSmtpServerIntegration extends AbstractHoneypotIntegration {
         const ip = session.remoteAddress;
         let data = "";
         stats.increaseCounter("SMTP_DATA");
+        stats.increaseCounter("CONNECTION");
 
         stream.on("data", (chunk) => {
           data += chunk.toString();

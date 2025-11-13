@@ -17,11 +17,13 @@ export function handleServerAuth(ctx, ip, authAttempts) {
   // Log credentials depending on method
   if (method === "password") {
     debugLog(` -> password supplied: "${ctx.password}"`);
+    stats.increaseCounter("SSH_AUTH_PASSWORD");
     return Math.random() < 0.6 ? ctx.accept() : ctx.reject();
   }
 
   if (method === "keyboard-interactive") {
     ctx.prompt([{ prompt: "Password: ", echo: false }], (answers) => {
+      stats.increaseCounter("SSH_AUTH_KEYBOARD_INTERACTIVE");
       debugLog(
         ` -> keyboard-interactive answers for ${ctx.username}: ${answers}`,
       );
@@ -42,6 +44,7 @@ export function handleServerAuth(ctx, ip, authAttempts) {
   }
 
   if (method === "publickey") {
+    stats.increaseCounter("SSH_AUTH_PUBLIC_KEY");
     // Public key auth: log key details
     try {
       const pk =
@@ -70,6 +73,7 @@ export function handleServerAuth(ctx, ip, authAttempts) {
   }
 
   // fallback: accept but log
+  stats.increaseCounter("SSH_AUTH_UNKNOWN");
   debugLog(` -> unknown auth method "${method}" — accepting for logging`);
   return ctx.reject();
 }

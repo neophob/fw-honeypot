@@ -47,7 +47,9 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
     this.#server = net.createServer((socket) => {
       const ip = socket.remoteAddress;
       debugLog(`New connection from %o`, socket.address());
+
       stats.increaseCounter("SMB_CONNECTION");
+      stats.increaseCounter("CONNECTION");
 
       if (!ip) {
         debugLog(

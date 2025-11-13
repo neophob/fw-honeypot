@@ -52,6 +52,7 @@ export class HoneypotTelnetServerIntegration extends AbstractHoneypotIntegration
       const ip = splitIpAddress(socket.remoteAddress);
       debugLog(`New connection from %o`, socket.address());
       stats.increaseCounter("TELNET_CONNECTION");
+      stats.increaseCounter("CONNECTION");
 
       if (!ip) {
         debugLog(

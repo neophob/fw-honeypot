@@ -75,6 +75,8 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
       let authAttempts = 0;
       const sessionInfo = [];
       debugLog("Client authenticated (ready): %O", ip);
+      stats.increaseCounter("SSH_CONNECTION");
+      stats.increaseCounter("CONNECTION");
 
       client
         .on("authentication", (ctx) => {
@@ -121,6 +123,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
             });
 
             session.on("exec", (acceptExec, rejectExec, info) => {
+              stats.increaseCounter("SSH_EXEC");
               const stream = acceptExec();
               debugLog(
                 `Exec request from ${clientAddr} command=${info.command}`,
@@ -131,6 +134,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
             });
 
             session.on("sftp", (acceptSftp, rejectSftp) => {
+              stats.increaseCounter("SSH_SFTP");
               debugLog(
                 `SFTP request from ${clientAddr} - rejecting (not implemented)`,
               );
@@ -147,7 +151,8 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
         })
         .on("error", (err) => {
           debugLog("ERROR: " + err.message);
-          stats.addErrorMessage("SSH_SERVER_ERROR#" + err.message);
+          stats.increaseCounter("SSH_ERROR");
+          stats.addErrorMessage(`SSH_SERVER_ERROR#${err.message}`);
         });
     });
     this.#server = server;
@@ -162,65 +167,8 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
       })
       .on("error", (err) => {
         debugLog(`Error: ${err.message}`);
+        stats.increaseCounter("SSH_ERROR");
         stats.addErrorMessage(`SSH_SERVER_ERROR#${err.message}`);
       });
   }
 }
-
-/*    const server = net.createServer((socket) => {
-      let handshakeDone = false;
-      const ip = splitIpAddress(socket.remoteAddress);
-
-      debugLog(`New connection from %o`, socket.address());
-      stats.increaseCounter("SSH_CONNECTION");
-
-      if (!ip) {
-        debugLog(
-          `Invalid IP address <${socket.remoteAddress}>. Connection closed.`,
-        );
-        stats.increaseCounter("SSH_INVALID_IP");
-        socket.destroy();
-        return;
-      }
-
-      socket.on("error", (err) => {
-        debugLog(`Socket error from ${ip}: ${err.message}`);
-        stats.increaseCounter("SSH_ERROR");
-      });
-
-      //honeypotServer.attacker.add(ip, config.banDurationMs);
-      socket.write(SSH_BANNER);
-
-      socket.on("data", (data) => {
-        debugLog(`Received data from ${ip}: ${data.toString()}`);
-        track(ip, SERVICE_NAME, data.toString("hex"));
-        stats.increaseCounter("SSH_DATA");
-
-        if (!handshakeDone) {
-          // Mock KEXINIT reply
-          // type 20 = SSH_MSG_KEXINIT
-          socket.write(
-            Buffer.from([
-              0x14, // SSH_MSG_KEXINIT
-              ...Buffer.alloc(15, 0), // cookie (random bytes normally)
-              0x00,
-              0x00,
-              0x00,
-              0x00, // fake algorithm lists lengths
-            ]),
-          );
-
-          // Mock NEWKEYS
-          socket.write(Buffer.from([0x15])); // type 21 = SSH_MSG_NEWKEYS
-
-          handshakeDone = true;
-          console.log(`Mock handshake completed for ${ip}`);
-          return;
-        }
-      });
-
-      setTimeout(() => {
-        socket.destroy();
-        debugLog(`Connection from ${ip} has been closed.`);
-      }, 5000);
-    });*/

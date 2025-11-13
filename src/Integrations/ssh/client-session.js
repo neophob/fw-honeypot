@@ -14,9 +14,7 @@ export function handleClientSessionSession(acceptShell, ip) {
   // show motd + prompt
   stream.write("Ubuntu 20.04.6 LTS\r\n");
   stream.write("Welcome to Ubuntu\r\n\n");
-  stream.write(
-    "Last login: " + new Date().toString() + " from " + ip + "\r\n",
-  );
+  stream.write("Last login: " + new Date().toString() + " from " + ip + "\r\n");
 
   fakeCommandHandler.writePrompt();
 
@@ -94,6 +92,7 @@ export function handleClientSessionSession(acceptShell, ip) {
 
   stream.on("error", (err) => {
     debugLog("Shell err", err.message);
+    stats.increaseCounter("SSH_ERROR");
     stats.addErrorMessage("SSHClientSessionError#" + err.message);
   });
 }

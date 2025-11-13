@@ -1,5 +1,9 @@
 # FW Honeypot
 
+## TODO
+
+RDP
+
 ## Deploy
 
 Make sure SSH connections work to the target, passwordless (`ssh-copy-id -i ~/.ssh/id_ed25519.pub -p PORT ubuntu@KAMALHOST`)

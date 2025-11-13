@@ -65,6 +65,7 @@ export class HoneypotMySQLServerIntegration extends AbstractHoneypotIntegration 
       const ip = splitIpAddress(socket.remoteAddress);
       debugLog(`New connection from %o`, socket.address());
       stats.increaseCounter("MYSQL_CONNECTION");
+      stats.increaseCounter("CONNECTION");
 
       if (!ip) {
         debugLog(
