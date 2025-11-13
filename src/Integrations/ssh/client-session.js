@@ -8,7 +8,7 @@ const debugLog = debug("SSHClientSession");
 
 export function handleExec(command, stream, ip) {
   emulateExec(command, stream, ip);
-};
+}
 
 export function handleClientSessionSession(acceptShell, ip) {
   const stream = acceptShell();

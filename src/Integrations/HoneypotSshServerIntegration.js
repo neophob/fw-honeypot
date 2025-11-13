@@ -6,15 +6,20 @@ import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
 import { track } from "../utils/tracker.js";
+import { RateLimiter } from "../utils/rate-limiter.js";
 
 import { handleServerAuth } from "./ssh/server-auth.js";
-import { handleClientSessionSession, handleExec } from "./ssh/client-session.js";
+import {
+  handleClientSessionSession,
+  handleExec,
+} from "./ssh/client-session.js";
 
 import debug from "debug";
 
 const { Server } = ssh2;
 const SERVICE_NAME = "SSH";
 const debugLog = debug(SERVICE_NAME);
+const rateLimiter = new RateLimiter();
 
 const { privateKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
@@ -70,16 +75,30 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
 
     const server = new Server(this.serverConfig, (client, info) => {
       const ip = splitIpAddress(client._sock.remoteAddress);
+      const isHostBlocked = rateLimiter.checkIfBlocked(ip);
       let authAttempts = 0;
       const sessionInfo = [];
       debugLog("Client authenticated (ready): %O", ip);
       sessionInfo.push(`Client:${JSON.stringify(info.header)}`);
-      stats.increaseCounter("SSH_CONNECTION");
+
+      if (isHostBlocked) {
+        stats.increaseCounter("SSH_CONNECTION_BLOCKED");
+      } else {
+        stats.increaseCounter("SSH_CONNECTION_ACCEPTED");
+      }
       stats.increaseCounter("CONNECTION");
 
       client
         .on("authentication", (ctx) => {
           authAttempts += 1;
+          if (isHostBlocked) {
+            return ctx.reject([
+              "password",
+              "publickey",
+              "keyboard-interactive",
+            ]);
+          }
+          stats.increaseCounter("AUTHENTICATION");
           handleServerAuth(ctx, ip, authAttempts);
         })
         .on("ready", () => {
@@ -89,9 +108,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
             const session = accept();
 
             session.on("pty", (acceptPty, rejectPty, info) => {
-              debugLog(
-                `PTY requested from ${ip} info=${JSON.stringify(info)}`,
-              );
+              debugLog(`PTY requested from ${ip} info=${JSON.stringify(info)}`);
               sessionInfo.push(`PTY:${JSON.stringify(info)}`);
               acceptPty && acceptPty();
             });
@@ -105,9 +122,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
             });
 
             session.on("env", (acceptE, reject, info) => {
-              debugLog(
-                `env requested from ${ip} info=${JSON.stringify(info)}`,
-              );
+              debugLog(`env requested from ${ip} info=${JSON.stringify(info)}`);
               sessionInfo.push(`ENV:${info.key}=${info.val}`);
               acceptE && acceptE();
             });
@@ -124,19 +139,19 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
             session.on("exec", (acceptExec, rejectExec, info) => {
               stats.increaseCounter("SSH_EXEC");
               const stream = acceptExec();
-              debugLog(
-                `Exec request from ${ip} command=${info.command}`,
-              );
+              debugLog(`Exec request from ${ip} command=${info.command}`);
               // Emulate execution with canned outputs, delay to look realistic
-              track(ip, SERVICE_NAME, Buffer.from('"' + info.command + '", ', "utf8").toString("hex"));
+              track(
+                ip,
+                SERVICE_NAME,
+                Buffer.from('"' + info.command + '", ', "utf8").toString("hex"),
+              );
               handleExec(info.command, stream, ip);
             });
 
             session.on("sftp", (acceptSftp, rejectSftp) => {
               stats.increaseCounter("SSH_SFTP");
-              debugLog(
-                `SFTP request from ${ip} - rejecting (not implemented)`,
-              );
+              debugLog(`SFTP request from ${ip} - rejecting (not implemented)`);
               // reject to appear like server without SFTP or limited SFTP
               rejectSftp && rejectSftp();
             });

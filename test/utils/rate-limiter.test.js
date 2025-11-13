@@ -10,7 +10,7 @@ test("RateLimiter: allows first connections", () => {
   const limiter = new RateLimiter({
     maxConnectionsPerHour: 3,
     windowMs: hour,
-    blockDurationMs: day
+    blockDurationMs: day,
   });
 
   const ip = "1.2.3.4";
@@ -24,7 +24,7 @@ test("RateLimiter: blocks when max connections exceeded", () => {
   const limiter = new RateLimiter({
     maxConnectionsPerHour: 3,
     windowMs: hour,
-    blockDurationMs: day
+    blockDurationMs: day,
   });
 
   const ip = "5.6.7.8";
@@ -44,7 +44,7 @@ test("RateLimiter: unblocks after block duration expires", () => {
   const limiter = new RateLimiter({
     maxConnectionsPerHour: 3,
     windowMs: hour,
-    blockDurationMs: day
+    blockDurationMs: day,
   });
 
   const ip = "9.9.9.9";
@@ -70,7 +70,7 @@ test("RateLimiter: window resets after 1 hour", () => {
   const limiter = new RateLimiter({
     maxConnectionsPerHour: 3,
     windowMs: hour,
-    blockDurationMs: day
+    blockDurationMs: day,
   });
 
   const ip = "2.2.2.2";
@@ -93,7 +93,7 @@ test("RateLimiter: cleanup removes expired window & block entries", () => {
   const limiter = new RateLimiter({
     maxConnectionsPerHour: 3,
     windowMs: hour,
-    blockDurationMs: day
+    blockDurationMs: day,
   });
 
   const ip = "3.3.3.3";

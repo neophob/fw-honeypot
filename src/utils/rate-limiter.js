@@ -1,19 +1,26 @@
+import debug from "debug";
+
+const debugLog = debug("RateLimiter");
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
+const CONNECTION_PER_HOURS = process.env.CONNECTION_PER_HOURS
+  ? parseInt(process.env.CONNECTION_PER_HOURS, 10)
+  : 32;
+
 export class RateLimiter {
   constructor({
-    maxConnectionsPerHour = 32,
+    maxConnectionsPerHour = CONNECTION_PER_HOURS,
     windowMs = HOUR,
-    blockDurationMs = DAY
+    blockDurationMs = DAY,
   } = {}) {
-
     this.maxConnectionsPerHour = maxConnectionsPerHour;
     this.windowMs = windowMs;
     this.blockDurationMs = blockDurationMs;
 
     this.connectionTracker = new Map(); // { ip: { count, firstSeen } }
-    this.blocklist = new Map();         // { ip: expiryTimestamp }
+    this.blocklist = new Map(); // { ip: expiryTimestamp }
+    debugLog(`created maxConnectionsPerHour: ${maxConnectionsPerHour}`);
   }
 
   // --- PRIVATE METHODS -------------------------------------------------
@@ -36,13 +43,14 @@ export class RateLimiter {
 
   #isCurrentlyBlocked(ip) {
     const expiry = this.blocklist.get(ip);
-    if (!expiry) return false;
+    if (!expiry) {
+      return false;
+    }
 
     if (expiry < Date.now()) {
       this.blocklist.delete(ip);
       return false;
     }
-
     return true;
   }
 
@@ -51,6 +59,7 @@ export class RateLimiter {
     const entry = this.connectionTracker.get(ip);
 
     if (!entry || now - entry.firstSeen > this.windowMs) {
+      debugLog(`IP ${ip} added to counter`);
       this.connectionTracker.set(ip, { count: 1, firstSeen: now });
       return 1;
     }
@@ -59,24 +68,22 @@ export class RateLimiter {
     return entry.count;
   }
 
-  #block(ip) {
-    this.blocklist.set(ip, Date.now() + this.blockDurationMs);
-  }
-
-  // --- PUBLIC METHOD ---------------------------------------------------
-
   checkIfBlocked(ip) {
     this.#cleanup();
 
-    if (this.#isCurrentlyBlocked(ip)) return true;
-
-    const count = this.#incrementConnectionCount(ip);
-
-    if (count > this.maxConnectionsPerHour) {
-      this.#block(ip);
+    if (this.#isCurrentlyBlocked(ip)) {
+      debugLog(`IP ${ip} is currently blocked`);
       return true;
     }
 
+    const count = this.#incrementConnectionCount(ip);
+    if (count > this.maxConnectionsPerHour) {
+      this.blocklist.set(ip, Date.now() + this.blockDurationMs);
+      debugLog(`IP ${ip} is now blocked`);
+      return true;
+    }
+
+    debugLog(`IP ${ip} is not blocked, ${count} connections`);
     return false;
   }
 }

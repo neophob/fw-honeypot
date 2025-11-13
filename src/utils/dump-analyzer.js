@@ -83,10 +83,11 @@ export class DumpAnalyzer {
     } catch (error) {
       stats.increaseCounter("LLM_INVALID_JSON_DETECTED");
     }
-
     // Escape lone backslashes (Windows paths etc.)
-    const jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
-    return JSON5.parse(jsonStr);
+    const jsonStr = data.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+    const fixedJson = JSON.parse(jsonStr);
+    stats.increaseCounter("LLM_INVALID_JSON_FIXED");
+    return fixedJson;
   }
 
   callOllama(asciiDump, metadata, prompt = null) {

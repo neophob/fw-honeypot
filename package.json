@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "DEBUG='*' nodemon server.js",
     "format:write": "npx -y prettier --write '**/*.{js,cjs,jsx,ts,tsx,json,css,scss,md}'",
-    "start": "DEBUG='*' INACTIVITY_MS=5000 HOST_OLLAMA='127.0.0.1' node server.js",
+    "start": "DEBUG='*' CONNECTION_PER_HOURS=3 INACTIVITY_MS=5000 HOST_OLLAMA='127.0.0.1' node server.js",
     "test": "HOST_OLLAMA='127.0.0.1' node --test",
     "docker:build": "docker build -t fw-honeypot .",
     "registry:login": "echo $GITHUB_TOKEN | docker login ghcr.io -u neophob --password-stdin",
