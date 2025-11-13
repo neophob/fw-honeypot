@@ -13,12 +13,12 @@ export function handleExec(command, stream, ip) {
 export function handleClientSessionSession(acceptShell, ip) {
   const stream = acceptShell();
   const fakeCommandHandler = new FakeCommandHandler(stream);
-  debugLog("Shell started for", ip);
+  debugLog(`Shell started for ${ip.toString()}`);
 
   // show motd + prompt
   stream.write("Ubuntu 20.04.6 LTS\r\n");
   stream.write("Welcome to Ubuntu\r\n\n");
-  stream.write("Last login: " + new Date().toString() + " from " + ip + "\r\n");
+  stream.write("Last login: " + new Date().toString() + " from " + ip.toString() + "\r\n");
 
   fakeCommandHandler.writePrompt();
   track(
@@ -99,7 +99,7 @@ export function handleClientSessionSession(acceptShell, ip) {
   });
 
   stream.on("close", () => {
-    debugLog("Shell closed for", ip);
+    debugLog(`Shell closed for ${ip.toString()}`);
   });
 
   stream.on("error", (err) => {

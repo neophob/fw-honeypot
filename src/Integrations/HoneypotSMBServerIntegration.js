@@ -4,11 +4,14 @@ import { HoneypotServer } from "../CreateHoneypot.js";
 import { mergeConfigs } from "../utils/config-utils.js";
 import { stats } from "../utils/statistics.js";
 import { track } from "../utils/tracker.js";
+import { RateLimiter } from "../utils/rate-limiter.js";
+
 import { handleSmbPacket } from "./smb/parser.js";
 import debug from "debug";
 
 const SERVICE_NAME = "SMB";
 const debugLog = debug(SERVICE_NAME);
+const rateLimiter = new RateLimiter();
 
 export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
   #server;
@@ -46,9 +49,17 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
 
     this.#server = net.createServer((socket) => {
       const ip = socket.remoteAddress;
+      const isHostBlocked = rateLimiter.checkIfBlocked(ip);
       debugLog(`New connection from %o`, socket.address());
 
-      stats.increaseCounter("SMB_CONNECTION");
+      if (isHostBlocked) {
+        stats.increaseCounter("SMB_CONNECTION_BLOCKED");
+        socket.destroy();
+        return;
+      } else {
+        stats.increaseCounter("SMB_CONNECTION_ACCEPTED");
+      }
+
       stats.increaseCounter("CONNECTION");
 
       if (!ip) {
