@@ -17,14 +17,16 @@ export function handleClientSessionSession(acceptShell, ip) {
   stream.write("Last login: " + new Date().toString() + " from " + ip + "\r\n");
 
   fakeCommandHandler.writePrompt();
+  track(
+    ip,
+    SERVICE_NAME,
+    Buffer.from(", Shell commands executed: ", "utf8").toString("hex"),
+  );
 
   // buffer user input line-by-line
   let cmdBuf = "";
   stream.on("data", (chunk) => {
     const s = chunk.toString("utf8");
-
-    track(ip, SERVICE_NAME, Buffer.from(s, "utf8").toString("hex"));
-
     let i = 0;
     while (i < s.length) {
       // Detect arrow up escape sequence: \x1b[A
@@ -73,6 +75,12 @@ export function handleClientSessionSession(acceptShell, ip) {
         stream.write("\r\n"); // echo newline
         const cmd = cmdBuf.trim();
         debugLog(`CMD from ${ip}: ${cmd}`);
+        track(
+          ip,
+          SERVICE_NAME,
+          Buffer.from('"' + cmd + '", ', "utf8").toString("hex"),
+        );
+
         fakeCommandHandler.handle(cmd);
         cmdBuf = "";
         i++;

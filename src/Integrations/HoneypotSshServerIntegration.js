@@ -68,13 +68,14 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
     this.config = config;
     debugLog("Config: <%o>", this.config);
 
-    const server = new Server(this.serverConfig, (client) => {
+    const server = new Server(this.serverConfig, (client, info) => {
       const clientAddr =
         client._sock.remoteAddress + ":" + client._sock.remotePort;
       const ip = splitIpAddress(client._sock.remoteAddress);
       let authAttempts = 0;
       const sessionInfo = [];
       debugLog("Client authenticated (ready): %O", ip);
+      sessionInfo.push(`Client:${JSON.stringify(info.header)}`);
       stats.increaseCounter("SSH_CONNECTION");
       stats.increaseCounter("CONNECTION");
 
