@@ -69,8 +69,6 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
     debugLog("Config: <%o>", this.config);
 
     const server = new Server(this.serverConfig, (client, info) => {
-      const clientAddr =
-        client._sock.remoteAddress + ":" + client._sock.remotePort;
       const ip = splitIpAddress(client._sock.remoteAddress);
       let authAttempts = 0;
       const sessionInfo = [];
@@ -85,14 +83,14 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
           handleServerAuth(ctx, ip, authAttempts);
         })
         .on("ready", () => {
-          debugLog("Client authenticated (ready) %s:", clientAddr);
+          debugLog("Client authenticated (ready) %s:", ip);
 
           client.on("session", (accept, reject) => {
             const session = accept();
 
             session.on("pty", (acceptPty, rejectPty, info) => {
               debugLog(
-                `PTY requested from ${clientAddr} info=${JSON.stringify(info)}`,
+                `PTY requested from ${ip} info=${JSON.stringify(info)}`,
               );
               sessionInfo.push(`PTY:${JSON.stringify(info)}`);
               acceptPty && acceptPty();
@@ -100,7 +98,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
 
             session.on("window-change", (acceptW, reject, info) => {
               debugLog(
-                `Window-Change requested from ${clientAddr} info=${JSON.stringify(info)}`,
+                `Window-Change requested from ${ip} info=${JSON.stringify(info)}`,
               );
               sessionInfo.push(`Window Change:${JSON.stringify(info)}`);
               acceptW && acceptW();
@@ -108,7 +106,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
 
             session.on("env", (acceptE, reject, info) => {
               debugLog(
-                `env requested from ${clientAddr} info=${JSON.stringify(info)}`,
+                `env requested from ${ip} info=${JSON.stringify(info)}`,
               );
               sessionInfo.push(`ENV:${info.key}=${info.val}`);
               acceptE && acceptE();
@@ -127,17 +125,17 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
               stats.increaseCounter("SSH_EXEC");
               const stream = acceptExec();
               debugLog(
-                `Exec request from ${clientAddr} command=${info.command}`,
+                `Exec request from ${ip} command=${info.command}`,
               );
               // Emulate execution with canned outputs, delay to look realistic
               track(ip, SERVICE_NAME, Buffer.from('"' + info.command + '", ', "utf8").toString("hex"));
-              handleExec(info.command, stream, clientAddr);
+              handleExec(info.command, stream, ip);
             });
 
             session.on("sftp", (acceptSftp, rejectSftp) => {
               stats.increaseCounter("SSH_SFTP");
               debugLog(
-                `SFTP request from ${clientAddr} - rejecting (not implemented)`,
+                `SFTP request from ${ip} - rejecting (not implemented)`,
               );
               // reject to appear like server without SFTP or limited SFTP
               rejectSftp && rejectSftp();

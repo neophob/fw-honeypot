@@ -92,9 +92,9 @@ export class FakeCommandHandler {
   }
 }
 
-export function emulateExec(command, stream, clientAddr) {
+export function emulateExec(command, stream, ip) {
   // mimic command running: small delays + canned output
-  debugLog(`Emulating exec ${clientAddr}: ${command}`);
+  debugLog(`Emulating exec ${ip}: ${command}`);
   if (command === "id") {
     setTimeout(() => {
       stream.write("uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu)\n");

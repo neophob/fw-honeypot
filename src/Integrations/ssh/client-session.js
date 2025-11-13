@@ -6,8 +6,8 @@ import { track } from "../../utils/tracker.js";
 const SERVICE_NAME = "SSH";
 const debugLog = debug("SSHClientSession");
 
-export function handleExec(command, stream, clientAddr) {
-  emulateExec(command, stream, clientAddr);
+export function handleExec(command, stream, ip) {
+  emulateExec(command, stream, ip);
 };
 
 export function handleClientSessionSession(acceptShell, ip) {
