@@ -10,7 +10,7 @@ export function handleServerAuth(ctx, clientAddr, authAttempts) {
 
   // When a client connects and sends AUTH method=none, your server should:
   // Reject the attempt (USERAUTH_FAILURE) and Tell the client which methods are allowed (e.g. password, publickey),
-  if (ctx.method === "none") {
+  if (method === "none") {
     return ctx.reject(["password", "publickey", "keyboard-interactive"]);
   }
 
