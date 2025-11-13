@@ -1,10 +1,14 @@
 import debug from "debug";
-import { FakeCommandHandler } from "./fake-commands.js";
+import { FakeCommandHandler, emulateExec } from "./fake-commands.js";
 import { stats } from "../../utils/statistics.js";
 import { track } from "../../utils/tracker.js";
 
 const SERVICE_NAME = "SSH";
 const debugLog = debug("SSHClientSession");
+
+export function handleExec(command, stream, clientAddr) {
+  emulateExec(command, stream, clientAddr);
+};
 
 export function handleClientSessionSession(acceptShell, ip) {
   const stream = acceptShell();

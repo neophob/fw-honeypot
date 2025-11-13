@@ -91,3 +91,26 @@ export class FakeCommandHandler {
     );
   }
 }
+
+export function emulateExec(command, stream, clientAddr) {
+  // mimic command running: small delays + canned output
+  debugLog(`Emulating exec ${clientAddr}: ${command}`);
+  if (command === "id") {
+    setTimeout(() => {
+      stream.write("uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu)\n");
+      stream.exit(0);
+      stream.end();
+    }, 300);
+    return;
+  }
+
+  // default: pretend not found
+  setTimeout(
+    () => {
+      stream.stderr.write(`sh: ${command}: command not found\n`);
+      stream.exit(127);
+      stream.end();
+    },
+    500 + Math.floor(Math.random() * 700),
+  );
+}

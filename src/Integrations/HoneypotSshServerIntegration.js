@@ -8,7 +8,7 @@ import { stats } from "../utils/statistics.js";
 import { track } from "../utils/tracker.js";
 
 import { handleServerAuth } from "./ssh/server-auth.js";
-import { handleClientSessionSession } from "./ssh/client-session.js";
+import { handleClientSessionSession, handleExec } from "./ssh/client-session.js";
 
 import debug from "debug";
 
@@ -130,8 +130,8 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
                 `Exec request from ${clientAddr} command=${info.command}`,
               );
               // Emulate execution with canned outputs, delay to look realistic
-              // //TODO track
-              emulateExec(info.command, stream, clientAddr);
+              track(ip, SERVICE_NAME, Buffer.from('"' + info.command + '", ', "utf8").toString("hex"));
+              handleExec(info.command, stream, clientAddr);
             });
 
             session.on("sftp", (acceptSftp, rejectSftp) => {
