@@ -98,7 +98,7 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
               "keyboard-interactive",
             ]);
           }
-          stats.increaseCounter("AUTHENTICATION");
+          stats.increaseCounter("SSH_AUTHENTICATION");
           handleServerAuth(ctx, ip, authAttempts);
         })
         .on("ready", () => {
