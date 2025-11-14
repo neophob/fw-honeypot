@@ -66,6 +66,11 @@ export class RateLimiter {
   }
 
   checkIfBlocked(_ip) {
+    if (!_ip) {
+      debugLog(`IP undefined`);
+      return false;
+    }
+
     const ip = _ip.toString();
     this.#cleanup();
 

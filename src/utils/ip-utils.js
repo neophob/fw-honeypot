@@ -33,6 +33,12 @@ export class IpAddress {
  * @return {IpAddress|null}
  */
 export const splitIpAddress = (remoteAddress) => {
+  if (!remoteAddress) {
+    stats.increaseCounter("IP_ADDRESS_UNDEFINED");
+    debugLog("IP address undefined");
+    return null;
+  }
+
   const matchesIpV4 = remoteAddress.match(ipRegex.v4());
   if (matchesIpV4) {
     stats.increaseCounter("IPV4_ADDRESS_DETECTED");

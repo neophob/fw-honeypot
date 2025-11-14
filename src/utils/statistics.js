@@ -4,7 +4,7 @@ const debugLog = debug("stats");
 class Statistics {
   constructor(options) {
     this.cache = new Map();
-    this.nrErrorsToTrack = options?.errorEntriesToTrack ?? 16;
+    this.nrErrorsToTrack = options?.errorEntriesToTrack ?? 32;
     this.lasterrors = {};
     this.errorSlot = 0;
     this.timeMeasurements = new Map();
