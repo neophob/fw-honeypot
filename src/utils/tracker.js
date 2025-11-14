@@ -21,12 +21,12 @@ const deduplicator = new HexDataDeduplicator(100, 0.8);
 const dataStore = new Map();
 const analyzer = new DumpAnalyzer({
   onError: (err) => {
-    stats.increaseCounter("FAILED_LLM_ANALYZE");
+    stats.increaseCounter("LLM_ANALYZED_FAILED");
     stats.addErrorMessage(`LLM-ERROR#${err.message}`);
     debugLog(`LLM error: %O`, err);
   },
   onData: ({ asciiDump, metadata, llmResult }) => {
-    stats.increaseCounter("ANALYZED_LLM_DUMPS");
+    stats.increaseCounter("LLM_ANALYZED_DATA");
     debugLog("ANALYZED_LLM_DUMPS: %o, %o, %o", asciiDump, metadata, llmResult);
     fs.appendFileSync(
       LLM_LOG_FILE,

@@ -100,6 +100,16 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
           }
           stats.increaseCounter("SSH_AUTHENTICATION");
           handleServerAuth(ctx, ip, authAttempts);
+
+          if (ctx.method) {
+            sessionInfo.push(`Auth Method:${ctx.method}`);
+          }
+          if (ctx.username) {
+            sessionInfo.push(`Auth User:${ctx.username}`);
+          }
+          if (ctx.password) {
+            sessionInfo.push(`Auth Password:${ctx.password}`);
+          }
         })
         .on("ready", () => {
           debugLog("Client authenticated (ready) %s:", ip);
