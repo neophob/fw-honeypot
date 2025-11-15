@@ -97,6 +97,7 @@ export class DumpAnalyzer {
         model: this.model,
         prompt: prompt ?? this.buildPrompt(asciiDump, metadata),
         stream: false,
+        response_format: "json",
       });
 
       const options = {
@@ -163,9 +164,33 @@ export class DumpAnalyzer {
 
   buildPrompt(asciiDump, metadata) {
     const { sourceIP, service, dumpSize } = metadata;
-    return `You are a concise, high-signal network-forensics analyst specializing in protocol inspection, intrusion-detection patterns, and MITRE ATT&CK mapping. Your job is to extract forensic meaning from noisy ASCII network-traffic dumps and describe only what is directly supported by the evidence. You do not speculate beyond observable data. Analyze the following ASCII network traffic dump and produce exactly one or two sentences describing the activity. Include all nerdy technical details: IP addresses, ports, hostnames, shares, protocol/service (${service}), and any other relevant network or OS metadata. Include metadata: source IP (${sourceIP}), service (${service}), dump size (${dumpSize} bytes). Skip null bytes, non-printable characters, and newlines. Output only a strict JSON object with exactly 3 keys: "analyse" (the 1–2 sentence description), "threadlevel" (green|yellow|red) and "mitre_phase": the most applicable MITRE ATT&CK phase (e.g., Reconnaissance, Resource Development, Initial Access, Execution, Persistence, Privilege Escalation, Defense Evasion, Credential Access, Discovery, Lateral Movement, Collection, Command and Control, Exfiltration, Impact). Do NOT add any text outside of the JSON object, no headers, no markdown, no explanations.
+    return `
+You are a concise, high‑signal network‑forensics analyst specializing in protocol inspection, intrusion‑detection patterns, and MITRE ATT&CK mapping. Your job is to extract forensic meaning from noisy ASCII network‑traffic dumps and describe only what is directly supported by the evidence. You do not speculate beyond observable data.
+
+Analyze the ASCII network‑traffic dump below and produce **exactly one single-line JSON object** with these keys:
+- "analyse": 1–2 sentences describing the activity, including all possible technical details supported by the evidence (IP addresses, ports, hostnames, shares, protocol/service (${service}), and any other relevant metadata).
+- "threadlevel": one of "green", "yellow", or "red"
+- "mitre_phase": the most applicable MITRE ATT&CK phase (e.g., Reconnaissance, Resource Development, Initial Access, Execution, Persistence, Privilege Escalation, Defense Evasion, Credential Access, Discovery, Lateral Movement, Collection, Command and Control, Exfiltration, Impact)
+
+**Metadata available to you:**
+- source IP: ${sourceIP}
+- service: ${service}
+- dump size: ${dumpSize} bytes
+
+**STRICT RULES:**
+- Output **ONLY** a single valid JSON object, no explanations, no commentary, no markdown, no prefixes, nothing before or after.
+- JSON must strictly comply with **RFC 8259** (double‑quoted strings, valid escaping, no trailing commas, no comments).
+- Remove null bytes, non‑printable characters, and newlines from consideration.
+- Only describe what is *literally* visible in the ASCII dump or in the metadata above.
+- Do **NOT** invent protocols, commands, hostnames, usernames, or actions that do not explicitly appear.
+- If evidence is missing or ambiguous, state "unknown" or leave that detail out, but still produce valid JSON.
+- Before producing the JSON, verify that every claim in "analyse" is directly supported by the ASCII strings or given metadata.
+
+**Example (format only; do not copy content):**
+{"analyse":"ASCII dump contains string 'abc123' with no clear protocol.","threadlevel":"green","mitre_phase":"Reconnaissance"}
 
 ASCII_STRINGS:
-${asciiDump}`;
+${asciiDump}
+`;
   }
 }

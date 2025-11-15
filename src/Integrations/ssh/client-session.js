@@ -18,7 +18,9 @@ export function handleClientSessionSession(acceptShell, ip) {
   // show motd + prompt
   stream.write("Ubuntu 20.04.6 LTS\r\n");
   stream.write("Welcome to Ubuntu\r\n\n");
-  stream.write("Last login: " + new Date().toString() + " from " + ip.toString() + "\r\n");
+  stream.write(
+    "Last login: " + new Date().toString() + " from " + ip.toString() + "\r\n",
+  );
 
   fakeCommandHandler.writePrompt();
   track(

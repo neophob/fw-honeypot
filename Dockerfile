@@ -1,6 +1,11 @@
 # Use official Node.js 24 LTS image
 FROM node:24-slim
 
+# Install nmap
+#RUN apt-get update && \
+#    apt-get install -y --no-install-recommends nmap && \
+#    apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 
