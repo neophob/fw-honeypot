@@ -33,6 +33,9 @@ const analyzer = new DumpAnalyzer({
       JSON.stringify({ asciiDump, metadata, llmResult }, null, 2) + "\n\n",
       "utf8",
     );
+    if (llmResult?.threadlevel) {
+      stats.increaseCounter(`LLM_THREADLEVEL_${llmResult.threadlevel}`);
+    }
   },
 });
 
