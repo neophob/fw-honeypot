@@ -2,7 +2,8 @@
 
 ## TODO
 
-RDP
+- RDP
+- agentic reaction to scanner -> tell the llm what tools we have, let the reasoning engine decide what to do
 
 ## Deploy
 

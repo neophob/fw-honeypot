@@ -53,8 +53,8 @@ test("Statistics: summary", () => {
 
 test("Statistics: supports custom errorEntriesToTrack", () => {
   stats.clearStatistics();
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 50; i++) {
     stats.addErrorMessage(`Error ${i}`);
   }
-  assert.equal(Object.keys(stats.getLastErrors()).length, 16);
+  assert.equal(Object.keys(stats.getLastErrors()).length, 32);
 });

@@ -81,13 +81,25 @@ export class DumpAnalyzer {
     try {
       return JSON.parse(data);
     } catch (error) {
-      stats.increaseCounter("LLM_INVALID_JSON_DETECTED");
+      stats.increaseCounter("LLM_INVALID_RAW_JSON_DETECTED");
     }
-    // Escape lone backslashes (Windows paths etc.)
-    const jsonStr = data.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
-    const fixedJson = JSON.parse(jsonStr);
-    stats.increaseCounter("LLM_INVALID_JSON_FIXED");
-    return fixedJson;
+
+    try {
+      // Extract substring between first { and last }
+      const start = data.indexOf("{");
+      const end = data.lastIndexOf("}");
+      if (start === -1 || end === -1) {
+        stats.increaseCounter("LLM_INVALID_PARSED_JSON_DETECTED");
+        return { llmResult: data };
+      }
+      let jsonStr = data.slice(start, end + 1);
+      const fixedJson = JSON.parse(jsonStr);
+      stats.increaseCounter("LLM_INVALID_JSON_FIXED");
+      return fixedJson;
+    } catch (err) {
+      stats.increaseCounter("LLM_INVALID_PARSED2_JSON_DETECTED");
+      return { llmResult: data };
+    }
   }
 
   callOllama(asciiDump, metadata, prompt = null) {
