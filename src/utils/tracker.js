@@ -34,7 +34,7 @@ const analyzer = new DumpAnalyzer({
       "utf8",
     );
     if (llmResult?.threadlevel) {
-      stats.increaseCounter(`LLM_THREADLEVEL_${llmResult.threadlevel}`);
+      stats.increaseCounter(`LLM_THREADLEVEL_${llmResult.threadlevel.toString().toUpperCase()}`);
     }
   },
 });
