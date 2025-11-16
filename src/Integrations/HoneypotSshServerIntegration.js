@@ -138,16 +138,22 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
             });
 
             session.on("shell", (acceptShell) => {
-              const hexData = Buffer.from(
+              stats.increaseCounter("SSH_SHELL");
+              const sessionHexData = Buffer.from(
                 sessionInfo.join(", "),
                 "utf8",
               ).toString("hex");
-              track(ip, SERVICE_NAME, hexData);
+              track(ip, SERVICE_NAME, sessionHexData);
               handleClientSessionSession(acceptShell, ip);
             });
 
             session.on("exec", (acceptExec, rejectExec, info) => {
               stats.increaseCounter("SSH_EXEC");
+              const sessionHexData = Buffer.from(
+                sessionInfo.join(", "),
+                "utf8",
+              ).toString("hex");
+              track(ip, SERVICE_NAME, sessionHexData);
               const stream = acceptExec();
               debugLog(`Exec request from ${ip} command=${info.command}`);
               // Emulate execution with canned outputs, delay to look realistic
@@ -161,6 +167,11 @@ export class HoneypotSshServerIntegration extends AbstractHoneypotIntegration {
 
             session.on("sftp", (acceptSftp, rejectSftp) => {
               stats.increaseCounter("SSH_SFTP");
+              const sessionHexData = Buffer.from(
+                sessionInfo.join(", "),
+                "utf8",
+              ).toString("hex");
+              track(ip, SERVICE_NAME, sessionHexData);
               debugLog(`SFTP request from ${ip} - rejecting (not implemented)`);
               // reject to appear like server without SFTP or limited SFTP
               rejectSftp && rejectSftp();
