@@ -36,6 +36,11 @@ export class FakeCommandHandler {
       this.writePrompt(this.stream);
       return;
     }
+    if (lower === "pwd") {
+      this.stream.write(`/home/ubuntu\r\n`);
+      this.writePrompt(this.stream);
+      return;
+    }
     if (lower === "uname") {
       this.stream.write(`Linux\r\n`);
       this.writePrompt(this.stream);
@@ -56,7 +61,15 @@ export class FakeCommandHandler {
       return;
     }
     if (lower.startsWith("ls")) {
-      this.stream.write("README.txt  logs  captures\r\n");
+      this.stream.write(".bash_history  README.txt  logs  captures\r\n");
+      this.writePrompt(this.stream);
+      return;
+    }
+    if (lower === "cat .bash_history") {
+      this.stream.write("curl https://tinyurl.com/nhcuf9ucca\r\n");
+      this.stream.write("pwd\r\n");
+      this.stream.write("ls\r\n");
+      this.stream.write("ll\r\n");
       this.writePrompt(this.stream);
       return;
     }
