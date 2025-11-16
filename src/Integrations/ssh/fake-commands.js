@@ -1,14 +1,92 @@
 import debug from "debug";
 const debugLog = debug("SSHFakeCommands");
 
+function generateHostname() {
+  return (
+    "vps-" +
+    Math.floor(Math.random() * 0xffffffff)
+      .toString(16)
+      .padStart(8, "0")
+  );
+}
+
+export function runFakeCommand(cmd, hostname) {
+  const lower = (cmd || "").toLowerCase().trim();
+  const result = {
+    stdout: "",
+    stderr: "",
+    exitCode: 0,
+    delay: Math.floor(Math.random() * 500),
+  };
+
+  if (!lower) {
+    return result;
+  }
+
+  switch (lower) {
+    case "whoami":
+      result.stdout = "ubuntu\n";
+      return result;
+
+    case "hostname":
+      result.stdout = `${hostname}\n`;
+      return result;
+
+    case "pwd":
+      result.stdout = "/home/ubuntu\n";
+      return result;
+
+    case "uname":
+      result.stdout = "Linux\n";
+      return result;
+
+    case "uname -a":
+      result.stdout =
+        `Linux ${hostname} 6.14.0-35-generic #35-Ubuntu SMP PREEMPT_DYNAMIC ` +
+        `Sat Oct 10 01:02:31 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\n`;
+      return result;
+
+    case "ls /":
+      result.stdout =
+        "bin  boot  dev  etc  home  lib  lib64  lost+found  media  mnt  opt  proc  root  run  sbin  snap  srv  sys  tmp  usr  var\n";
+      return result;
+
+    case "id":
+      result.stdout = "uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu)\n";
+      return result;
+  }
+
+  // pattern-based commands
+  if (lower.startsWith("ls")) {
+    result.stdout = ".bash_history  README.txt  logs  captures\n";
+    return result;
+  }
+
+  if (lower === "cat .bash_history") {
+    result.stdout = "curl https://tinyurl.com/nhcuf9ucca\npwd\nls\nll\n";
+    return result;
+  }
+
+  if (
+    lower.startsWith("cat ") ||
+    lower.startsWith("sudo ") ||
+    lower.startsWith("su ")
+  ) {
+    result.stderr = "Permission denied\n";
+    result.exitCode = 1;
+    return result;
+  }
+
+  // default: command not found
+  result.stderr = `sh: ${cmd}: command not found\n`;
+  result.exitCode = 127;
+  return result;
+}
+
 export class FakeCommandHandler {
   constructor(stream) {
     this.stream = stream;
-    this.hostname =
-      "vps-" +
-      Math.floor(Math.random() * 0xffffffff)
-        .toString(16)
-        .padStart(8, "0");
+    this.hostname = generateHostname();
     debugLog(`Initialized with hostname=${this.hostname}`);
   }
 
@@ -17,113 +95,42 @@ export class FakeCommandHandler {
   }
 
   handle(cmd) {
-    // small set of believable responses
-    if (!cmd) {
-      this.writePrompt(this.stream);
-      return;
-    }
-
-    const lower = cmd.toLowerCase();
     debugLog(`Handling command: ${cmd}`);
 
-    if (lower === "whoami") {
-      this.stream.write("ubuntu\r\n");
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower === "hostname") {
-      this.stream.write(`${this.hostname}\r\n`);
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower === "pwd") {
-      this.stream.write(`/home/ubuntu\r\n`);
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower === "uname") {
-      this.stream.write(`Linux\r\n`);
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower === "uname -a") {
-      this.stream.write(
-        `Linux ${this.hostname} 6.14.0-35-generic #35-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 10 01:02:31 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\r\n`,
-      );
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower === "ls /") {
-      this.stream.write(
-        "bin  boot  dev  etc  home  lib  lib64  lost+found  media  mnt  opt  proc  root  run  sbin  snap  srv  sys  tmp  usr  var\r\n",
-      );
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower.startsWith("ls")) {
-      this.stream.write(".bash_history  README.txt  logs  captures\r\n");
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower === "cat .bash_history") {
-      this.stream.write("curl https://tinyurl.com/nhcuf9ucca\r\n");
-      this.stream.write("pwd\r\n");
-      this.stream.write("ls\r\n");
-      this.stream.write("ll\r\n");
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower.startsWith("cat ")) {
-      this.stream.write("Permission denied\r\n");
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower.startsWith("sudo ")) {
-      this.stream.write("Permission denied\r\n");
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower.startsWith("su ")) {
-      this.stream.write("Permission denied\r\n");
-      this.writePrompt(this.stream);
-      return;
-    }
-    if (lower === "exit" || lower === "logout") {
-      this.stream.write("logout\r\n");
-      this.stream.end();
-      return;
-    }
+    const result = runFakeCommand(cmd, this.hostname);
 
-    // Unknown commands: pretend /bin/sh returns "command not found"
-    setTimeout(
-      () => {
-        this.stream.write(`${cmd}: command not found\r\n`);
-        this.writePrompt(this.stream);
-      },
-      200 + Math.floor(Math.random() * 750),
-    );
+    setTimeout(() => {
+      if (result.stdout) {
+        this.stream.write(result.stdout.replace(/\n/g, "\r\n"));
+      }
+      if (result.stderr) {
+        this.stream.write(result.stderr.replace(/\n/g, "\r\n"));
+      }
+
+      if (cmd === "exit" || cmd === "logout") {
+        this.stream.write("logout\r\n");
+        this.stream.end();
+        return;
+      }
+
+      this.writePrompt();
+    }, result.delay);
   }
 }
 
 export function emulateExec(command, stream, ip) {
-  // mimic command running: small delays + canned output
   debugLog(`Emulating exec ${ip}: ${command}`);
-  if (command === "id") {
-    setTimeout(() => {
-      stream.write("uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu)\n");
-      stream.exit(0);
-      stream.end();
-    }, 300);
-    return;
-  }
+  const result = runFakeCommand(command, generateHostname());
 
-  // default: pretend not found
-  setTimeout(
-    () => {
-      stream.stderr.write(`sh: ${command}: command not found\n`);
-      stream.exit(127);
-      stream.end();
-    },
-    500 + Math.floor(Math.random() * 700),
-  );
+  setTimeout(() => {
+    if (result.stdout) {
+      stream.write(result.stdout);
+    }
+    if (result.stderr) {
+      stream.stderr.write(result.stderr);
+    }
+
+    stream.exit(result.exitCode);
+    stream.end();
+  }, result.delay);
 }

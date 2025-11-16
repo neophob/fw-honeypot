@@ -46,7 +46,7 @@ test("FakeCommandHandler: should write prompt on initialization", () => {
   assert.match(stream.getOutput(), /ubuntu@vps-[0-9a-f]{8}:~\$/);
 });
 
-test("FakeCommandHandler: whoami command returns ubuntu", () => {
+test("FakeCommandHandler: whoami command returns ubuntu", async () => {
   // Given
   const stream = new MockStream();
   const handler = new FakeCommandHandler(stream);
@@ -54,9 +54,13 @@ test("FakeCommandHandler: whoami command returns ubuntu", () => {
   // When
   handler.handle("whoami");
 
+  // Wait for the delayed output (max 500ms + a small buffer)
+  await new Promise((resolve) => setTimeout(resolve, 550));
+
   // Then
-  assert(stream.getOutput().includes("ubuntu\r\n"));
-  assert.match(stream.getOutput(), /ubuntu@vps-[0-9a-f]{8}:~\$/);
+  const output = stream.getOutput();
+  assert(output.includes("ubuntu\r\n"));
+  assert.match(output, /ubuntu@vps-[0-9a-f]{8}:~\$/);
 });
 
 test("FakeCommandHandler: unknown command returns 'command not found'", async () => {
@@ -65,14 +69,15 @@ test("FakeCommandHandler: unknown command returns 'command not found'", async ()
 
   handler.handle("foobar123");
 
-  // Wait enough time for the delayed command response
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Wait enough time for the delayed command response (max 500ms + buffer)
+  await new Promise((resolve) => setTimeout(resolve, 550));
 
-  assert(stream.getOutput().includes("foobar123: command not found"));
-  assert.match(stream.getOutput(), /ubuntu@vps-[0-9a-f]{8}:~\$/);
+  const output = stream.getOutput();
+  assert(output.includes("foobar123: command not found"));
+  assert.match(output, /ubuntu@vps-[0-9a-f]{8}:~\$/);
 });
 
-test("FakeCommandHandler: exit command ends stream", () => {
+test("FakeCommandHandler: exit command ends stream", async () => {
   // Given
   const stream = new MockStream();
   const handler = new FakeCommandHandler(stream);
@@ -80,9 +85,13 @@ test("FakeCommandHandler: exit command ends stream", () => {
   // When
   handler.handle("exit");
 
+  // Wait enough time for the delayed command response
+  await new Promise((resolve) => setTimeout(resolve, 550));
+
   // Then
   assert(stream.ended === true);
 });
+
 
 test("emulateExec: id command returns correct output", (t) => {
   // Given
