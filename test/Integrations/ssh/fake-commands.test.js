@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { FakeCommandHandler, emulateExec } from "../../../src/Integrations/ssh/fake-commands.js";
+import {
+  FakeCommandHandler,
+  emulateExec,
+} from "../../../src/Integrations/ssh/fake-commands.js";
 
 class MockStream {
   constructor() {
