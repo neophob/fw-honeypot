@@ -50,13 +50,13 @@ export class HoneypotSMBServerIntegration extends AbstractHoneypotIntegration {
     this.#server = net.createServer((socket) => {
       const ip = socket.remoteAddress;
       const isHostBlocked = rateLimiter.checkIfBlocked(ip);
-      debugLog(`New connection from %o`, socket.address());
 
       if (isHostBlocked) {
         stats.increaseCounter("SMB_CONNECTION_BLOCKED");
         socket.destroy();
         return;
       } else {
+        debugLog(`New connection from %o`, socket.address());
         stats.increaseCounter("SMB_CONNECTION_ACCEPTED");
       }
 

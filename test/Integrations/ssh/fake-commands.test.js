@@ -92,7 +92,6 @@ test("FakeCommandHandler: exit command ends stream", async () => {
   assert(stream.ended === true);
 });
 
-
 test("emulateExec: id command returns correct output", (t) => {
   // Given
   const stream = new MockStream();
