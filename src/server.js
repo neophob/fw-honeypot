@@ -4,6 +4,7 @@ import { HoneypotSmtpServerIntegration } from "./Integrations/HoneypotSmtpServer
 import { HoneypotTelnetServerIntegration } from "./Integrations/HoneypotTelnetServerIntegration.js";
 import { HoneypotMySQLServerIntegration } from "./Integrations/HoneypotMySQLServerIntegration.js";
 import { HoneypotSMBServerIntegration } from "./Integrations/HoneypotSMBServerIntegration.js";
+import { HoneypotRdpServerIntegration } from "./Integrations/HoneypotRdpServerIntegration.js";
 
 /**
  * Start the honeypot server. Accepts optional dependency overrides to make testing safe.
@@ -18,6 +19,7 @@ export async function runServer(deps = {}) {
     HoneypotTelnetServerIntegration,
     HoneypotMySQLServerIntegration,
     HoneypotSMBServerIntegration,
+    HoneypotRdpServerIntegration,
   };
 
   if (!config) throw new Error("Config must be provided to runServer");
