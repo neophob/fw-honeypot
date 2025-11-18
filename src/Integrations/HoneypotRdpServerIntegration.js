@@ -71,59 +71,107 @@ export class HoneypotRdpServerIntegration extends AbstractHoneypotIntegration {
 
 
             socket.on("data", (data) => {
+                // Increment data counter and log raw hex
                 stats.increaseCounter("RDP_DATA");
                 debugLog(`Data ${ip}: ${data.toString("hex")}`);
-                // Track each data chunk directly
-                track(ip, SERVICE_NAME, data.toString("hex"));
+                // Track raw chunk
+                const chunkHex = Buffer.from(data.toString("utf8"), "utf8").toString("hex");
+                track(ip, SERVICE_NAME, chunkHex);
 
+                // Detect X.224 Connection Request (CR) after TPKT header
+                // The client sends a TPKT header (4 bytes) followed by X.224 CR (0x0e 0xe0 ...)
+                // We'll respond with a Connection Confirm (CC) and then a Server Security Response
+                if (data.length >= 6 && data[4] === 0x0e && data[5] === 0xe0) {
+                    // Connection Confirm (11 bytes)
+                    const cc = Buffer.from([
+                        0x03, 0x00, 0x00, 0x0b, // TPKT Header (length 11)
+                        0x06, // X.224 LI
+                        0xd0, // X.224 CC
+                        0x00, 0x00, // DST-REF
+                        0x12, 0x34, // SRC-REF
+                        0x00 // Class 0
+                    ]);
+                    socket.write(cc);
+                    debugLog(`Sent X.224 Connection Confirm to ${ip}`);
 
-                // Basic RDP Handshake handling
-                // Check for X.224 Connection Request (CR)
-                // First byte is length, second byte is 0xE0 (CR)
-                if (data.length >= 4 && data[1] === 0xe0) {
-                    debugLog(`Received X.224 Connection Request from ${ip}`);
-
-                    // Construct X.224 Connection Confirm (CC)
-                    // LI (Length) = 4
-                    // Code = 0xD0 (CC)
-                    // DST-REF = 0x0000 (using 0 for simplicity)
-                    // SRC-REF = 0x1234 (arbitrary)
-                    // Class = 0x00
-
-                    // A simple valid CC packet: 03 D0 00 00 12 34 00 ... wait, let's look at a real trace or spec.
-                    // Actually, a minimal CC is:
-                    // LI (1 byte), Code (1 byte), DST-REF (2 bytes), SRC-REF (2 bytes), Class (1 byte)
-                    // Total 7 bytes?
-                    // Let's try a standard response seen in other honeypots like Cowrie or similar for RDP.
-                    // 0x04 (Length 4 bytes excluding LI?) No, LI includes header excluding itself usually? 
-                    // RFC 1006 / TPKT might be wrapping it if it's over TCP port 3389 directly? 
-                    // RDP usually uses TPKT (RFC 1006) header first: Version (1), Reserved (1), Length (2).
-
-                    // Let's check if the incoming data has TPKT header.
-                    // TPKT: v=3, r=0, len=...
-
-                    if (data[0] === 0x03 && data[1] === 0x00) {
-                        // It's likely TPKT.
-                        // Let's just send back a canned TPKT + X.224 CC response.
-                        // TPKT Header: 03 00 00 0B (11 bytes total)
-                        // X.224 CC: 06 (LI) D0 (CC) 00 00 (DST) 12 34 (SRC) 00 (Class)
-
-                        const response = Buffer.from([
-                            0x03, 0x00, 0x00, 0x0b, // TPKT Header (length 11)
-                            0x06, // X.224 LI
-                            0xd0, // X.224 CC
-                            0x00, 0x00, // DST-REF
-                            0x12, 0x34, // SRC-REF
-                            0x00 // Class 0
+                    // Check for embedded RDP Negotiation Request (0x01) immediately following X.224 CR
+                    // This happens when the client sends both in one packet.
+                    // The RDP Negotiation Request starts after TPKT (4 bytes) + X.224 CR (3 bytes)
+                    // So, if data[7] is 0x01, it's an embedded negotiation request.
+                    if (data.length >= 8 && data[7] === 0x01) {
+                        debugLog(`Detected embedded RDP Negotiation Request from ${ip}`);
+                        // Respond with Standard RDP Security (0x00000001)
+                        const negotiationResponse = Buffer.from([
+                            0x03, 0x00, 0x00, 0x0C, // TPKT header (len 12)
+                            0x02, 0xF0, 0x80, 0x7F, // X.224 Data TPDU
+                            0x00, 0x00, 0x00, 0x01 // Negotiation Response: selectedProtocol = 0x00000001
                         ]);
-                        socket.write(response);
-                        debugLog(`Sent X.224 Connection Confirm to ${ip}`);
+                        socket.write(negotiationResponse);
+                        debugLog(`Sent RDP Negotiation Response (Standard RDP Security) to ${ip}`);
                     }
+
+                    // Server Security Response (12 bytes)
+                    const serverSecResp = Buffer.from([
+                        0x03, 0x00, 0x00, 0x0c, // TPKT Header (len 12)
+                        0x02, // X.224 Data TPDU
+                        0x02, // Server Security Response code
+                        // 8 zero bytes payload (server random, etc.)
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+                    ]);
+                    socket.write(serverSecResp);
+                    debugLog(`RDP_INITIAL_HANDSHAKE_DONE ${ip}`);
+                    return; // stop further processing of this packet
                 }
+
+                // Basic RDP packet parsing (skip TPKT header 4 bytes, X.224 header 1 byte)
+                if (data.length < 6) return; // not enough for RDP type
+                const rdpType = data[5]; // after TPKT(4) + X.224(1)
+                // 0x01 = Negotiation Request, 0x03 = Security Exchange, 0x04 = Client Info
+                if (rdpType === 0x01) {
+                    // Negotiation Request -> respond with Standard RDP Security (0x00000001)
+                    const response = Buffer.from([
+                        0x03, 0x00, 0x00, 0x0C, // TPKT header (len 12)
+                        0x02, 0xF0, 0x80, 0x7F, // X.224 Data TPDU
+                        0x00, 0x00, 0x00, 0x01 // Negotiation Response: selectedProtocol = 0x00000001
+                    ]);
+                    socket.write(response);
+                    debugLog(`Sent RDP Negotiation Response (Standard RDP Security) to ${ip}`);
+                    return;
+                }
+                if (rdpType === 0x03) {
+                    // Security Exchange – client sent credentials, we acknowledge with a dummy Server Security Response
+                    const serverSecResp = Buffer.from([
+                        0x03, 0x00, 0x00, 0x0c, // TPKT Header (len 12)
+                        0x02, // X.224 Data TPDU
+                        0x02, // Server Security Response code
+                        // Minimal payload (e.g., 8 zero bytes for server random & other fields)
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+                    ]);
+                    socket.write(serverSecResp);
+                    debugLog(`Sent Server Security Response to ${ip}`);
+                    stats.addErrorMessage(`RDP_SECURITY_RESPONSE_SENT#${ip}`);
+                    return;
+                }
+                if (rdpType === 0x04) {
+                    // Client Info – extract Unicode username
+                    let offset = 10; // start after TPKT(4)+X.224(1)+RDP Header(1)+flags(2)+lengths(2)
+                    if (data.length < offset + 2) return;
+                    const userLen = data.readUInt16LE(offset) * 2;
+                    offset += 2;
+                    if (data.length < offset + userLen) return;
+                    const usernameBuf = data.slice(offset, offset + userLen);
+                    const username = usernameBuf.toString('utf16le').replace(/\0+$/g, '');
+                    debugLog(`RDP Username extracted from ${ip}: ${username}`);
+                    track(ip, `${SERVICE_NAME}_USERNAME`, Buffer.from(username, "utf8").toString("hex"));
+                    return;
+                }
+                // Other packet types are already tracked above.
             });
 
             socket.on('end', () => {
                 debugLog(`Connection from ${ip} has been closed (client ended).`);
+                // Ensure any remaining buffered data is flushed (if any)
+                // No additional action needed because we track per packet.
             });
         });
 
