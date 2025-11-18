@@ -75,7 +75,7 @@ export class HoneypotRdpServerIntegration extends AbstractHoneypotIntegration {
                 stats.increaseCounter("RDP_DATA");
                 debugLog(`Data ${ip}: ${data.toString("hex")}`);
                 // Track raw chunk
-                const chunkHex = Buffer.from(data.toString("utf8"), "utf8").toString("hex");
+                const chunkHex = data.toString('hex');
                 track(ip, SERVICE_NAME, chunkHex);
 
                 // Detect X.224 Connection Request (CR) after TPKT header
@@ -124,8 +124,12 @@ export class HoneypotRdpServerIntegration extends AbstractHoneypotIntegration {
                 }
 
                 // Basic RDP packet parsing (skip TPKT header 4 bytes, X.224 header 1 byte)
-                if (data.length < 6) return; // not enough for RDP type
+                if (data.length < 6) {
+                    debugLog(`too less RDP Data ${ip}: ${data.toString("hex")}`);
+                    return;
+                }
                 const rdpType = data[5]; // after TPKT(4) + X.224(1)
+                debugLog(`RDP Type extracted from ${ip}: ${rdpType}`);
                 // 0x01 = Negotiation Request, 0x03 = Security Exchange, 0x04 = Client Info
                 if (rdpType === 0x01) {
                     // Negotiation Request -> respond with Standard RDP Security (0x00000001)
@@ -155,10 +159,30 @@ export class HoneypotRdpServerIntegration extends AbstractHoneypotIntegration {
                 if (rdpType === 0x04) {
                     // Client Info – extract Unicode username
                     let offset = 10; // start after TPKT(4)+X.224(1)+RDP Header(1)+flags(2)+lengths(2)
-                    if (data.length < offset + 2) return;
-                    const userLen = data.readUInt16LE(offset) * 2;
+                    if (data.length < offset + 2) {
+                        debugLog(`RDP Client Info from ${ip}: ${data.toString("hex")}`);
+                        return;
+                    }
+                    // Domain length (2 bytes)
+                    const domainLen = data.readUInt16LE(offset) * 2;
                     offset += 2;
-                    if (data.length < offset + userLen) return;
+                    if (data.length < offset + domainLen) {
+                        debugLog(`RDP Client Info incomplete domain data from ${ip}`);
+                        return;
+                    }
+                    offset += domainLen; // skip domain string
+                    // Username length (2 bytes)
+                    if (data.length < offset + 2) {
+                        debugLog(`RDP Client Info incomplete username length from ${ip}`);
+                        return;
+                    }
+                    const userLen = data.readUInt16LE(offset) * 2;
+                    debugLog(`RDP Username length bytes: ${userLen}`);
+                    offset += 2;
+                    if (data.length < offset + userLen) {
+                        debugLog(`RDP Client Info incomplete username data from ${ip}`);
+                        return;
+                    }
                     const usernameBuf = data.slice(offset, offset + userLen);
                     const username = usernameBuf.toString('utf16le').replace(/\0+$/g, '');
                     debugLog(`RDP Username extracted from ${ip}: ${username}`);
