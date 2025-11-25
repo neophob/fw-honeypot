@@ -81,7 +81,7 @@ export class DumpAnalyzer {
     try {
       return JSON.parse(data);
     } catch (error) {
-      stats.increaseCounter("LLM_INVALID_RAW_JSON_DETECTED");
+      debugLog.increaseCounter("LLM_INVALID_RAW_JSON_DETECTED");
     }
 
     try {
@@ -89,15 +89,15 @@ export class DumpAnalyzer {
       const start = data.indexOf("{");
       const end = data.lastIndexOf("}");
       if (start === -1 || end === -1) {
-        stats.increaseCounter("LLM_INVALID_PARSED_JSON_DETECTED");
+        stats.increaseCounter("LLM_RESULT_INVALID_JSON");
         return { llmResult: data };
       }
       let jsonStr = data.slice(start, end + 1);
       const fixedJson = JSON.parse(jsonStr);
-      stats.increaseCounter("LLM_INVALID_JSON_FIXED");
       return fixedJson;
     } catch (err) {
-      stats.increaseCounter("LLM_INVALID_PARSED2_JSON_DETECTED");
+      stats.addErrorMessage(err.message);
+      stats.increaseCounter("LLM_RESULT_PARSE_ERROR");
       return { llmResult: data };
     }
   }
