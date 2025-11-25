@@ -5,6 +5,10 @@ import geoip from "geoip-country";
 import { stats } from "./statistics.js";
 import { HexDataDeduplicator } from "./hex-data-dedup.js";
 import { DumpAnalyzer } from "./dump-analyzer.js";
+import {
+  sendTelegramMessage,
+  formatLlmDataForTelegram,
+} from "./telegram-bot.js";
 
 const debugLog = debug("Tracker");
 const INACTIVITY_MS = process.env.INACTIVITY_MS
@@ -13,6 +17,8 @@ const INACTIVITY_MS = process.env.INACTIVITY_MS
 //TODO fix naming
 const LOG_FILE = path.join(process.env.LOG_DEST || "./", "dump-raw.log");
 const LLM_LOG_FILE = path.join(process.env.LLM_DEST || "./", "dump-llm.log");
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 debugLog(
   `Dump file: ${LOG_FILE}, LLM file: ${LLM_LOG_FILE}, inactivity timeout: ${INACTIVITY_MS}ms`,
@@ -36,6 +42,29 @@ const analyzer = new DumpAnalyzer({
     if (llmResult?.threadlevel) {
       stats.increaseCounter(
         `LLM_THREADLEVEL_${llmResult.threadlevel.toString().toUpperCase()}`,
+      );
+    }
+
+    // Send to Telegram bot
+    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+      const telegramMessage = formatLlmDataForTelegram(
+        asciiDump,
+        metadata,
+        llmResult,
+      );
+      sendTelegramMessage(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, telegramMessage)
+        .then(() => {
+          stats.increaseCounter("TELEGRAM_MESSAGE_SENT");
+          debugLog("Successfully sent message to Telegram");
+        })
+        .catch((err) => {
+          stats.increaseCounter("TELEGRAM_MESSAGE_FAILED");
+          stats.addErrorMessage(`TELEGRAM-ERROR#${err.message}`);
+          debugLog("Failed to send message to Telegram: %O", err);
+        });
+    } else {
+      debugLog(
+        "Telegram bot not configured (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID)",
       );
     }
   },
