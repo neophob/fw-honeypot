@@ -21,7 +21,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 debugLog(
-  `Dump file: ${LOG_FILE}, LLM file: ${LLM_LOG_FILE}, inactivity timeout: ${INACTIVITY_MS}ms, Telegram chat ID: ${TELEGRAM_CHAT_ID}`,
+  `Dump file: "${LOG_FILE}", LLM file: "${LLM_LOG_FILE}", inactivity timeout: ${INACTIVITY_MS}ms, Telegram chat ID: <${TELEGRAM_CHAT_ID}>`,
 );
 const deduplicator = new HexDataDeduplicator(100, 0.8);
 const dataStore = new Map();
