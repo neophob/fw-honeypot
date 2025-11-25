@@ -110,86 +110,78 @@ export class HoneypotRdpServerIntegration extends AbstractHoneypotIntegration {
                         debugLog(`Sent RDP Negotiation Response (Standard RDP Security) to ${ip}`);
                     }
 
-                    // Server Security Response (12 bytes)
-                    const serverSecResp = Buffer.from([
-                        0x03, 0x00, 0x00, 0x0c, // TPKT Header (len 12)
-                        0x02, // X.224 Data TPDU
-                        0x02, // Server Security Response code
-                        // 8 zero bytes payload (server random, etc.)
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-                    ]);
-                    socket.write(serverSecResp);
                     debugLog(`RDP_INITIAL_HANDSHAKE_DONE ${ip}`);
-                    return; // stop further processing of this packet
+                    // CR packet handled - wait for next packet (Security Exchange or Client Info)
+                    return;
                 }
 
-                // Basic RDP packet parsing (skip TPKT header 4 bytes, X.224 header 1 byte)
-                if (data.length < 6) {
-                    debugLog(`too less RDP Data ${ip}: ${data.toString("hex")}`);
+                // For non-CR packets: TPKT(4) + X.224 Data TPDU(3) = offset 7
+                // X.224 Data TPDU is: LI(1) + Code(1) + EOT(1) = 3 bytes typically
+                // But in practice, RDP uses a simplified format where byte 4 is just 0x02
+                if (data.length < 7) {
+                    debugLog(`Packet too small for RDP parsing: ${data.toString("hex")}`);
                     return;
                 }
-                const rdpType = data[5]; // after TPKT(4) + X.224(1)
-                debugLog(`RDP Type extracted from ${ip}: ${rdpType}`);
-                // 0x01 = Negotiation Request, 0x03 = Security Exchange, 0x04 = Client Info
-                if (rdpType === 0x01) {
-                    // Negotiation Request -> respond with Standard RDP Security (0x00000001)
-                    const response = Buffer.from([
-                        0x03, 0x00, 0x00, 0x0C, // TPKT header (len 12)
-                        0x02, 0xF0, 0x80, 0x7F, // X.224 Data TPDU
-                        0x00, 0x00, 0x00, 0x01 // Negotiation Response: selectedProtocol = 0x00000001
-                    ]);
-                    socket.write(response);
-                    debugLog(`Sent RDP Negotiation Response (Standard RDP Security) to ${ip}`);
+
+                // After TPKT (4 bytes), check X.224 Data TPDU marker (0x02)
+                // Then the RDP PDU type is in the MCS layer
+                // For simplicity, we look at specific byte patterns
+                const byte4 = data[4];
+                const byte5 = data[5];
+
+                debugLog(`Packet structure - byte4: ${byte4.toString(16)}, byte5: ${byte5.toString(16)}`);
+
+                // Detect Security Exchange (look for MCS pattern)
+                const isSecurityExchange = byte4 === 0x02 && byte5 === 0xf0;
+                // Detect Client Info (look for different MCS pattern or specific identifier)
+                const isClientInfo = byte4 === 0x02 && data.length > 10;
+                // Check for Security Exchange pattern
+                if (isSecurityExchange && data.length > 15) {
+                    debugLog(`Detected Security Exchange from ${ip}`);
+                    // Track the encrypted credential blob
+                    track(ip, `${SERVICE_NAME}_CRED`, chunkHex);
+                    stats.increaseCounter("RDP_SECURITY_EXCHANGE");
                     return;
                 }
-                if (rdpType === 0x03) {
-                    // Security Exchange – client sent credentials, we acknowledge with a dummy Server Security Response
-                    const serverSecResp = Buffer.from([
-                        0x03, 0x00, 0x00, 0x0c, // TPKT Header (len 12)
-                        0x02, // X.224 Data TPDU
-                        0x02, // Server Security Response code
-                        // Minimal payload (e.g., 8 zero bytes for server random & other fields)
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-                    ]);
-                    socket.write(serverSecResp);
-                    debugLog(`Sent Server Security Response to ${ip}`);
-                    stats.addErrorMessage(`RDP_SECURITY_RESPONSE_SENT#${ip}`);
+                // Check for Client Info pattern
+                if (isClientInfo && !isSecurityExchange) {
+                    debugLog(`Attempting to parse Client Info from ${ip}`);
+                    // Try to extract username - look for domain/username fields
+                    // Client Info structure varies, but typically starts around offset 10-15
+                    try {
+                        let offset = 10;
+                        if (data.length >= offset + 2) {
+                            const domainLen = data.readUInt16LE(offset) * 2;
+                            debugLog(`Domain length: ${domainLen}`);
+                            offset += 2;
+
+                            if (data.length >= offset + domainLen + 2) {
+                                offset += domainLen;
+                                const userLen = data.readUInt16LE(offset) * 2;
+                                debugLog(`Username length: ${userLen}`);
+                                offset += 2;
+
+                                if (data.length >= offset + userLen && userLen > 0 && userLen < 512) {
+                                    const usernameBuf = data.slice(offset, offset + userLen);
+                                    const username = usernameBuf.toString('utf16le').replace(/\0+$/g, '');
+                                    debugLog(`RDP Username extracted from ${ip}: "${username}"`);
+                                    track(ip, `${SERVICE_NAME}_USERNAME`, Buffer.from(username, "utf8").toString("hex"));
+                                    track(ip, `${SERVICE_NAME}_CLIENTINFO`, chunkHex);
+                                } else {
+                                    debugLog(`Invalid username length or incomplete data: ${userLen}`);
+                                    track(ip, `${SERVICE_NAME}_CLIENTINFO_RAW`, chunkHex);
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        debugLog(`Error parsing Client Info from ${ip}: ${err.message}`);
+                        track(ip, `${SERVICE_NAME}_CLIENTINFO_RAW`, chunkHex);
+                    }
                     return;
                 }
-                if (rdpType === 0x04) {
-                    // Client Info – extract Unicode username
-                    let offset = 10; // start after TPKT(4)+X.224(1)+RDP Header(1)+flags(2)+lengths(2)
-                    if (data.length < offset + 2) {
-                        debugLog(`RDP Client Info from ${ip}: ${data.toString("hex")}`);
-                        return;
-                    }
-                    // Domain length (2 bytes)
-                    const domainLen = data.readUInt16LE(offset) * 2;
-                    offset += 2;
-                    if (data.length < offset + domainLen) {
-                        debugLog(`RDP Client Info incomplete domain data from ${ip}`);
-                        return;
-                    }
-                    offset += domainLen; // skip domain string
-                    // Username length (2 bytes)
-                    if (data.length < offset + 2) {
-                        debugLog(`RDP Client Info incomplete username length from ${ip}`);
-                        return;
-                    }
-                    const userLen = data.readUInt16LE(offset) * 2;
-                    debugLog(`RDP Username length bytes: ${userLen}`);
-                    offset += 2;
-                    if (data.length < offset + userLen) {
-                        debugLog(`RDP Client Info incomplete username data from ${ip}`);
-                        return;
-                    }
-                    const usernameBuf = data.slice(offset, offset + userLen);
-                    const username = usernameBuf.toString('utf16le').replace(/\0+$/g, '');
-                    debugLog(`RDP Username extracted from ${ip}: ${username}`);
-                    track(ip, `${SERVICE_NAME}_USERNAME`, Buffer.from(username, "utf8").toString("hex"));
-                    return;
-                }
-                // Other packet types are already tracked above.
+                // If we get here, it's an unknown packet type - just track it
+                debugLog(`Unknown RDP packet type from ${ip}, tracking as raw data`);
+                // Raw data already tracked at the top of the handler
             });
 
             socket.on('end', () => {
