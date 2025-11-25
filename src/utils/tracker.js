@@ -31,7 +31,7 @@ const analyzer = new DumpAnalyzer({
     stats.addErrorMessage(`LLM-ERROR#${err.message}`);
     debugLog(`LLM error: %O`, err);
   },
-  onData: ({ asciiDump, metadata, llmResult }) => {
+  onData: ({ asciiDump, metadata, llmResult, printableString }) => {
     stats.increaseCounter("LLM_ANALYZED_DATA");
     debugLog("ANALYZED_LLM_DUMPS: %o, %o, %o", asciiDump, metadata, llmResult);
     fs.appendFileSync(
@@ -48,7 +48,7 @@ const analyzer = new DumpAnalyzer({
     // Send to Telegram bot
     if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
       const telegramMessage = formatLlmDataForTelegram(
-        asciiDump,
+        printableString,
         metadata,
         llmResult,
       );

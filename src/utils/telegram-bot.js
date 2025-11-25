@@ -110,10 +110,10 @@ export function formatLlmDataForTelegram(asciiDump, metadata, llmResult) {
     // Add metadata
     if (metadata) {
         message += `📊 *Metadata:*\n`;
-        message += `• IP: \`${metadata.ip || "Unknown"}\`\n`;
+        message += `• IP: \`${metadata.sourceIP || "Unknown"}\`\n`;
         message += `• Country: ${metadata.country || "Unknown"}\n`;
-        message += `• Service: ${metadata.serviceName || "Unknown"}\n`;
-        message += `• Size: ${metadata.size || "Unknown"} bytes\n`;
+        message += `• Service: ${metadata.service || "Unknown"}\n`;
+        message += `• Size: ${metadata.dumpSize || "Unknown"} bytes\n`;
         message += `• Time: ${time}\n\n`;
     }
 
@@ -122,7 +122,7 @@ export function formatLlmDataForTelegram(asciiDump, metadata, llmResult) {
         message += `🤖 *LLM Analysis:*\n`;
         if (llmResult.threadlevel) {
             const threat = llmResult.threadlevel.toString().toUpperCase();
-            const emoji = threat === "HIGH" ? "🔴" : threat === "MEDIUM" ? "🟡" : "🟢";
+            const emoji = threat === "RED" ? "🔴" : threat === "YELLOW" ? "🟡" : "🟢";
             message += `• Threat Level: ${emoji} ${threat}\n`;
         }
         if (llmResult.summary) {
@@ -137,7 +137,7 @@ export function formatLlmDataForTelegram(asciiDump, metadata, llmResult) {
     // Add ASCII dump (truncated if too long)
     if (asciiDump) {
         message += `📝 *Data Dump:*\n`;
-        const maxDumpLength = 500;
+        const maxDumpLength = 1024;
         if (asciiDump.length > maxDumpLength) {
             message += `\`\`\`\n${asciiDump.substring(0, maxDumpLength)}...\n\`\`\`\n`;
             message += `_(Truncated from ${asciiDump.length} characters)_\n`;

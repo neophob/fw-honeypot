@@ -34,6 +34,7 @@ export class DumpAnalyzer {
     }
 
     const asciiDump = tracker.getTextSummary();
+    const printableString = tracker.getPrintableString();
     const metadata = {
       sourceIP: tracker.ip,
       service: tracker.serviceName,
@@ -44,7 +45,7 @@ export class DumpAnalyzer {
 
     stats.increaseCounter("CONNECT_FROM_COUNTRY_" + tracker.country);
 
-    const task = { asciiDump, metadata };
+    const task = { asciiDump, metadata, printableString };
     this.queue.push(task);
     stats.setValue("LLM_QUERY_SIZE", this.queue.length);
     this.processQueue();
@@ -56,13 +57,13 @@ export class DumpAnalyzer {
     }
 
     this.isProcessing = true;
-    const { asciiDump, metadata } = this.queue.shift();
+    const { asciiDump, metadata, printableString } = this.queue.shift();
 
     try {
       stats.increaseCounter("LLM_QUERY_STARTED");
       stats.setValue("LLM_QUERY_SIZE", this.queue.length);
       const llmResult = await this.callOllama(asciiDump, metadata);
-      this.onData({ asciiDump, metadata, llmResult });
+      this.onData({ asciiDump, metadata, llmResult, printableString });
       stats.increaseCounter("LLM_QUERY_PROCESSED");
     } catch (err) {
       stats.increaseCounter("LLM_QUERY_ERROR");
