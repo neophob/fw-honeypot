@@ -82,7 +82,7 @@ export class DumpAnalyzer {
     try {
       return JSON.parse(data);
     } catch (error) {
-      debugLog.increaseCounter("LLM_INVALID_RAW_JSON_DETECTED");
+      stats.increaseCounter("LLM_INVALID_RAW_JSON_DETECTED");
     }
 
     try {
