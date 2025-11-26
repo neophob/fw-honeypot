@@ -48,7 +48,7 @@ function sendSingleMessage(botToken, chatId, message) {
         const data = JSON.stringify({
             chat_id: chatId,
             text: message,
-            parse_mode: "Markdown",
+            parse_mode: "HTML",
         });
 
         const options = {
@@ -58,7 +58,7 @@ function sendSingleMessage(botToken, chatId, message) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Content-Length": data.length,
+                "Content-Length": Buffer.byteLength(data),
             },
         };
 
@@ -104,13 +104,15 @@ function sendSingleMessage(botToken, chatId, message) {
  * @returns {string} Formatted message
  */
 export function formatLlmDataForTelegram(asciiDump, metadata, llmResult) {
+    debugLog(`Formatting message - asciiDump length: ${asciiDump?.length || 0}, metadata: ${!!metadata}, llmResult: ${!!llmResult}`);
+
     const time = new Date().toLocaleString();
-    let message = `🚨 *Honeypot Alert* 🚨\n\n`;
+    let message = `🚨 <b>Honeypot Alert</b> 🚨\n\n`;
 
     // Add metadata
     if (metadata) {
-        message += `📊 *Metadata:*\n`;
-        message += `• IP: \`${metadata.sourceIP || "Unknown"}\`\n`;
+        message += `📊 <b>Metadata:</b>\n`;
+        message += `• IP: <code>${metadata.sourceIP || "Unknown"}</code>\n`;
         message += `• Country: ${metadata.country || "Unknown"}\n`;
         message += `• Service: ${metadata.service || "Unknown"}\n`;
         message += `• Size: ${metadata.dumpSize || "Unknown"} bytes\n`;
@@ -119,32 +121,49 @@ export function formatLlmDataForTelegram(asciiDump, metadata, llmResult) {
 
     // Add LLM analysis result
     if (llmResult) {
-        message += `🤖 *LLM Analysis:*\n`;
+        message += `🤖 <b>LLM Analysis:</b>\n`;
         if (llmResult.threadlevel) {
             const threat = llmResult.threadlevel.toString().toUpperCase();
             const emoji = threat === "RED" ? "🔴" : threat === "YELLOW" ? "🟡" : "🟢";
             message += `• Threat Level: ${emoji} ${threat}\n`;
         }
-        if (llmResult.summary) {
-            message += `• Summary: ${llmResult.summary}\n`;
+        if (llmResult.analyse) {
+            message += `• Summary: ${escapeHtml(llmResult.analyse)}\n`;
         }
-        if (llmResult.details) {
-            message += `• Details: ${llmResult.details}\n`;
+        if (llmResult.mitre_phase) {
+            message += `• Mitre Phase: ${escapeHtml(llmResult.mitre_phase)}\n`;
         }
         message += `\n`;
     }
 
     // Add ASCII dump (truncated if too long)
     if (asciiDump) {
-        message += `📝 *Data Dump:*\n`;
-        const maxDumpLength = 1024;
+        message += `📝 <b>Data Dump:</b>\n`;
+        const maxDumpLength = 1300;
+        const dumpContent = asciiDump.length > maxDumpLength
+            ? asciiDump.substring(0, maxDumpLength) + "..."
+            : asciiDump;
+
+        // Use <pre> tag for monospaced formatting
+        message += `<pre>${escapeHtml(dumpContent)}</pre>\n`;
+
         if (asciiDump.length > maxDumpLength) {
-            message += `\`\`\`\n${asciiDump.substring(0, maxDumpLength)}...\n\`\`\`\n`;
-            message += `_(Truncated from ${asciiDump.length} characters)_\n`;
-        } else {
-            message += `\`\`\`\n${asciiDump}\n\`\`\`\n`;
+            message += `<i>(Truncated from ${asciiDump.length} characters)</i>\n`;
         }
     }
 
     return message;
+}
+
+/**
+ * Escapes HTML special characters to prevent formatting issues
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+    if (!text) return text;
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 }
