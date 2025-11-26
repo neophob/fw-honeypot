@@ -14,27 +14,27 @@ const debugLog = debug("TelegramBot");
  * @returns {Promise<void>}
  */
 export async function sendTelegramMessage(botToken, chatId, message) {
-    if (!botToken || !chatId) {
-        debugLog("Telegram bot token or chat ID not configured, skipping message");
-        return;
-    }
+  if (!botToken || !chatId) {
+    debugLog("Telegram bot token or chat ID not configured, skipping message");
+    return;
+  }
 
-    // Telegram has a 4096 character limit per message
-    const MAX_MESSAGE_LENGTH = 4096;
-    let messagesToSend = [];
+  // Telegram has a 4096 character limit per message
+  const MAX_MESSAGE_LENGTH = 4096;
+  let messagesToSend = [];
 
-    if (message.length > MAX_MESSAGE_LENGTH) {
-        // Split the message into chunks
-        for (let i = 0; i < message.length; i += MAX_MESSAGE_LENGTH) {
-            messagesToSend.push(message.substring(i, i + MAX_MESSAGE_LENGTH));
-        }
-    } else {
-        messagesToSend.push(message);
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    // Split the message into chunks
+    for (let i = 0; i < message.length; i += MAX_MESSAGE_LENGTH) {
+      messagesToSend.push(message.substring(i, i + MAX_MESSAGE_LENGTH));
     }
+  } else {
+    messagesToSend.push(message);
+  }
 
-    for (const msg of messagesToSend) {
-        await sendSingleMessage(botToken, chatId, msg);
-    }
+  for (const msg of messagesToSend) {
+    await sendSingleMessage(botToken, chatId, msg);
+  }
 }
 
 /**
@@ -45,63 +45,65 @@ export async function sendTelegramMessage(botToken, chatId, message) {
  * @returns {Promise<void>}
  */
 function sendSingleMessage(botToken, chatId, message) {
-    return new Promise((resolve, reject) => {
-        const data = JSON.stringify({
-            chat_id: chatId,
-            text: message,
-            parse_mode: "HTML",
-        });
-
-        const options = {
-            hostname: "api.telegram.org",
-            port: 443,
-            path: `/bot${botToken}/sendMessage`,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Content-Length": Buffer.byteLength(data),
-            },
-        };
-
-        const req = https.request(options, (res) => {
-            let responseData = "";
-
-            res.on("data", (chunk) => {
-                responseData += chunk;
-            });
-
-            res.on("end", () => {
-                if (res.statusCode === 200) {
-                    debugLog("Message sent successfully to Telegram");
-                    stats.increaseCounter("TELEGRAM_MESSAGE_SENT");
-                    resolve();
-                } else {
-                    const errorMsg = `Failed to send message to Telegram: ${res.statusCode} - ${responseData}`;
-                    debugLog(errorMsg);
-                    stats.increaseCounter("TELEGRAM_MESSAGE_FAILED");
-                    stats.addErrorMessage(`TELEGRAM-ERROR#${res.statusCode} - ${responseData}`);
-                    reject(new Error(errorMsg));
-                }
-            });
-
-            res.on("error", (err) => {
-                debugLog(`Error receiving response from Telegram: ${err.message}`);
-                stats.increaseCounter("TELEGRAM_RESPONSE_ERROR");
-                stats.addErrorMessage(`TELEGRAM-RESPONSE-ERROR#${err.message}`);
-                reject(err);
-            });
-        });
-
-        req.on("error", (error) => {
-            debugLog(`Error sending message to Telegram: ${error.message}`);
-            stats.increaseCounter("TELEGRAM_REQUEST_ERROR");
-            stats.addErrorMessage(`TELEGRAM-REQUEST-ERROR#${error.message}`);
-            reject(error);
-        });
-
-        req.write(data);
-        req.end();
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify({
+      chat_id: chatId,
+      text: message,
+      parse_mode: "HTML",
     });
+
+    const options = {
+      hostname: "api.telegram.org",
+      port: 443,
+      path: `/bot${botToken}/sendMessage`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(data),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let responseData = "";
+
+      res.on("data", (chunk) => {
+        responseData += chunk;
+      });
+
+      res.on("end", () => {
+        if (res.statusCode === 200) {
+          debugLog("Message sent successfully to Telegram");
+          stats.increaseCounter("TELEGRAM_MESSAGE_SENT");
+          resolve();
+        } else {
+          const errorMsg = `Failed to send message to Telegram: ${res.statusCode} - ${responseData}`;
+          debugLog(errorMsg);
+          stats.increaseCounter("TELEGRAM_MESSAGE_FAILED");
+          stats.addErrorMessage(
+            `TELEGRAM-ERROR#${res.statusCode} - ${responseData}`,
+          );
+          reject(new Error(errorMsg));
+        }
+      });
+
+      res.on("error", (err) => {
+        debugLog(`Error receiving response from Telegram: ${err.message}`);
+        stats.increaseCounter("TELEGRAM_RESPONSE_ERROR");
+        stats.addErrorMessage(`TELEGRAM-RESPONSE-ERROR#${err.message}`);
+        reject(err);
+      });
+    });
+
+    req.on("error", (error) => {
+      debugLog(`Error sending message to Telegram: ${error.message}`);
+      stats.increaseCounter("TELEGRAM_REQUEST_ERROR");
+      stats.addErrorMessage(`TELEGRAM-REQUEST-ERROR#${error.message}`);
+      reject(error);
+    });
+
+    req.write(data);
+    req.end();
+  });
 }
 
 /**
@@ -112,55 +114,58 @@ function sendSingleMessage(botToken, chatId, message) {
  * @returns {string} Formatted message
  */
 export function formatLlmDataForTelegram(asciiDump, metadata, llmResult) {
-    debugLog(`Formatting message - asciiDump length: ${asciiDump?.length || 0}, metadata: ${!!metadata}, llmResult: ${!!llmResult}`);
+  debugLog(
+    `Formatting message - asciiDump length: ${asciiDump?.length || 0}, metadata: ${!!metadata}, llmResult: ${!!llmResult}`,
+  );
 
-    const time = new Date().toLocaleString();
-    let message = `🚨 <b>Honeypot Alert</b> 🚨\n\n`;
+  const time = new Date().toLocaleString();
+  let message = `🚨 <b>Honeypot Alert</b> 🚨\n\n`;
 
-    // Add metadata
-    if (metadata) {
-        message += `📊 <b>Metadata:</b>\n`;
-        message += `• IP: <code>${metadata.sourceIP || "Unknown"}</code>\n`;
-        message += `• Country: ${metadata.country || "Unknown"}\n`;
-        message += `• Service: ${metadata.service || "Unknown"}\n`;
-        message += `• Size: ${metadata.dumpSize || "Unknown"} bytes\n`;
-        message += `• Time: ${time}\n\n`;
+  // Add metadata
+  if (metadata) {
+    message += `📊 <b>Metadata:</b>\n`;
+    message += `• IP: <code>${metadata.sourceIP || "Unknown"}</code>\n`;
+    message += `• Country: ${metadata.country || "Unknown"}\n`;
+    message += `• Service: ${metadata.service || "Unknown"}\n`;
+    message += `• Size: ${metadata.dumpSize || "Unknown"} bytes\n`;
+    message += `• Time: ${time}\n\n`;
+  }
+
+  // Add LLM analysis result
+  if (llmResult) {
+    message += `🤖 <b>LLM Analysis:</b>\n`;
+    if (llmResult.threadlevel) {
+      const threat = llmResult.threadlevel.toString().toUpperCase();
+      const emoji = threat === "RED" ? "🔴" : threat === "YELLOW" ? "🟡" : "🟢";
+      message += `• Threat Level: ${emoji} ${threat}\n`;
     }
-
-    // Add LLM analysis result
-    if (llmResult) {
-        message += `🤖 <b>LLM Analysis:</b>\n`;
-        if (llmResult.threadlevel) {
-            const threat = llmResult.threadlevel.toString().toUpperCase();
-            const emoji = threat === "RED" ? "🔴" : threat === "YELLOW" ? "🟡" : "🟢";
-            message += `• Threat Level: ${emoji} ${threat}\n`;
-        }
-        if (llmResult.analyse) {
-            message += `• Summary: ${escapeHtml(llmResult.analyse)}\n`;
-        }
-        if (llmResult.mitre_phase) {
-            message += `• Mitre Phase: ${escapeHtml(llmResult.mitre_phase)}\n`;
-        }
-        message += `\n`;
+    if (llmResult.analyse) {
+      message += `• Summary: ${escapeHtml(llmResult.analyse)}\n`;
     }
-
-    // Add ASCII dump (truncated if too long)
-    if (asciiDump) {
-        message += `📝 <b>Data Dump:</b>\n`;
-        const maxDumpLength = 1300;
-        const dumpContent = asciiDump.length > maxDumpLength
-            ? asciiDump.substring(0, maxDumpLength) + "..."
-            : asciiDump;
-
-        // Use <pre> tag for monospaced formatting
-        message += `<pre>${escapeHtml(dumpContent)}</pre>\n`;
-
-        if (asciiDump.length > maxDumpLength) {
-            message += `<i>(Truncated from ${asciiDump.length} characters)</i>\n`;
-        }
+    if (llmResult.mitre_phase) {
+      message += `• Mitre Phase: ${escapeHtml(llmResult.mitre_phase)}\n`;
     }
+    message += `\n`;
+  }
 
-    return message;
+  // Add ASCII dump (truncated if too long)
+  if (asciiDump) {
+    message += `📝 <b>Data Dump:</b>\n`;
+    const maxDumpLength = 1300;
+    const dumpContent =
+      asciiDump.length > maxDumpLength
+        ? asciiDump.substring(0, maxDumpLength) + "..."
+        : asciiDump;
+
+    // Use <pre> tag for monospaced formatting
+    message += `<pre>${escapeHtml(dumpContent)}</pre>\n`;
+
+    if (asciiDump.length > maxDumpLength) {
+      message += `<i>(Truncated from ${asciiDump.length} characters)</i>\n`;
+    }
+  }
+
+  return message;
 }
 
 /**
@@ -169,9 +174,9 @@ export function formatLlmDataForTelegram(asciiDump, metadata, llmResult) {
  * @returns {string} Escaped text
  */
 function escapeHtml(text) {
-    if (!text) return text;
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+  if (!text) return text;
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
