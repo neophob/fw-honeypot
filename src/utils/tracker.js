@@ -54,12 +54,9 @@ const analyzer = new DumpAnalyzer({
       );
       sendTelegramMessage(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, telegramMessage)
         .then(() => {
-          stats.increaseCounter("TELEGRAM_MESSAGE_SENT");
           debugLog("Successfully sent message to Telegram");
         })
         .catch((err) => {
-          stats.increaseCounter("TELEGRAM_MESSAGE_FAILED");
-          stats.addErrorMessage(`TELEGRAM-ERROR#${err.message}`);
           debugLog("Failed to send message to Telegram: %O", err);
         });
     } else {

@@ -1,5 +1,6 @@
 import https from "https";
 import debug from "debug";
+import { stats } from "./statistics.js";
 
 const debugLog = debug("TelegramBot");
 
@@ -72,22 +73,29 @@ function sendSingleMessage(botToken, chatId, message) {
             res.on("end", () => {
                 if (res.statusCode === 200) {
                     debugLog("Message sent successfully to Telegram");
+                    stats.increaseCounter("TELEGRAM_MESSAGE_SENT");
                     resolve();
                 } else {
-                    debugLog(
-                        `Failed to send message to Telegram: ${res.statusCode} - ${responseData}`,
-                    );
-                    reject(
-                        new Error(
-                            `Telegram API error: ${res.statusCode} - ${responseData}`,
-                        ),
-                    );
+                    const errorMsg = `Failed to send message to Telegram: ${res.statusCode} - ${responseData}`;
+                    debugLog(errorMsg);
+                    stats.increaseCounter("TELEGRAM_MESSAGE_FAILED");
+                    stats.addErrorMessage(`TELEGRAM-ERROR#${res.statusCode} - ${responseData}`);
+                    reject(new Error(errorMsg));
                 }
+            });
+
+            res.on("error", (err) => {
+                debugLog(`Error receiving response from Telegram: ${err.message}`);
+                stats.increaseCounter("TELEGRAM_RESPONSE_ERROR");
+                stats.addErrorMessage(`TELEGRAM-RESPONSE-ERROR#${err.message}`);
+                reject(err);
             });
         });
 
         req.on("error", (error) => {
             debugLog(`Error sending message to Telegram: ${error.message}`);
+            stats.increaseCounter("TELEGRAM_REQUEST_ERROR");
+            stats.addErrorMessage(`TELEGRAM-REQUEST-ERROR#${error.message}`);
             reject(error);
         });
 
